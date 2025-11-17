@@ -1,13 +1,18 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://tileset.tres" type="TileSet" id=1]
 [ext_resource path="res://icon.png" type="Texture" id=2]
 [ext_resource path="res://scenes/Player.gd" type="Script" id=3]
+[ext_resource path="res://scenes/World.gd" type="Script" id=4]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 24, 24 )
 
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 32, 32 )
+
 [node name="World" type="Node2D"]
+script = ExtResource( 4 )
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource( 1 )
@@ -25,3 +30,19 @@ texture = ExtResource( 2 )
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 position = Vector2( 32, 32 )
 shape = SubResource( 1 )
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+current = true
+smoothing_enabled = true
+
+[node name="CityEntrance" type="Area2D" parent="."]
+position = Vector2( 448, 320 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CityEntrance"]
+shape = SubResource( 2 )
+
+[node name="Sprite" type="Sprite" parent="CityEntrance"]
+modulate = Color( 0.898039, 0.905882, 0.0666667, 1 )
+texture = ExtResource( 2 )
+
+[connection signal="body_entered" from="CityEntrance" to="." method="_on_CityEntrance_body_entered"]
