@@ -1,15 +1,15 @@
 [gd_scene load_steps=4 format=2]
 
 [sub_resource type="CubeMesh" id=1]
-size = Vector3( 1, 2.5, 1 )
+size = Vector3( 1, 2, 1 )
 
 [sub_resource type="SpatialMaterial" id=2]
-albedo_color = Color( 0.784314, 0.627451, 0.439216, 1 )
+albedo_color = Color( 0.831373, 0.721569, 0.588235, 1 )
 
 [sub_resource type="BoxShape" id=3]
-extents = Vector3( 0.45, 1.25, 0.45 )
+extents = Vector3( 0.45, 1, 0.45 )
 
-[node name="House" type="Spatial"]
+[node name="HouseC" type="Spatial"]
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = SubResource( 1 )

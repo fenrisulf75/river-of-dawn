@@ -2,27 +2,28 @@ extends Spatial
 
 # Yeriho 16x16 ASCII map
 const CITY_MAP = """
+
 ################
-#..==BBBBBB==..#
-#..=B......B=..#
-#..=B...D..B=..#
-#..=B......B=..#
-#..==BBBBBB==..#
-#====.?C...====#
-#H==M..S..M===E
-W===T==M==A====#
-#H==M==O==M==H=#
-#N.=HH==..==HN.#
-#..==K=...=F===#
-#==.S==P==S..==#
-#H.==H====H==..#
-#.==R==...==C=.#
+#......TT......#
+#......TT......#
+#..............#
+#===..C....====#
+#H==M..S..M===E#
+W==XH=M==MA====#
+#H==M=O=M===H=#
+#N==HH====HH=N=#
+#L==K====F==L==#
+#===S==P==S====#
+#H==H====H==H==#
+#.==R=====C==.=#
 ################
 """
 
 # Prefab paths
 var wall_prefab = preload("res://prefabs/WallSegment.tscn")
 var house_prefab = preload("res://prefabs/House.tscn")
+var houseb_prefab = preload("res://prefabs/HouseB.tscn")
+var housec_prefab = preload("res://prefabs/HouseC.tscn")
 var temple_prefab = preload("res://prefabs/TempleBlock.tscn")
 var market_prefab = preload("res://prefabs/MarketStall.tscn")
 
@@ -74,7 +75,6 @@ func move_camera(direction):
 	var collision = body.move_and_collide(forward * tile_size * direction, true, true, true)
 	
 	if collision:
-		# Hit something, don't move
 		is_moving = false
 		return
 	
@@ -88,6 +88,8 @@ func finish_move():
 
 func _ready():
 	generate_city()
+	# Position camera at East Gate entrance (clear street)
+	camera.global_transform.origin = Vector3(6.5, 0.5, 0.5)
 
 func generate_city():
 	var lines = CITY_MAP.split("\n")
@@ -102,14 +104,23 @@ func generate_city():
 			match tile:
 				"#":
 					spawn_prefab(wall_prefab, pos)
-				"H", "N":
-					print("House at: ", pos)
+				"H":
 					spawn_prefab(house_prefab, pos)
-				"B":
-					print("Temple at: ", pos)
-					spawn_prefab(temple_prefab, pos)
+				"N":
+					# Named houses use variant B (taller)
+					spawn_prefab(houseb_prefab, pos)
+				"L":
+					# L for "Low house: - shorter variant
+					spawn_prefab(housec_prefab, pos)
+				"T":
+					# Only spawn one temple at the first T
+					if not has_node("Temple"):
+						var temple = temple_prefab.instance()
+						temple.name = "Temple"
+						add_child(temple)
+						# Center it at rows 2-3, cols 7-8 → position (0, 0, -6)
+						temple.global_transform.origin = Vector3(0.5, 0, -6)  # Centered, spans 2×2
 				"M":
-					print("Market at: ", pos)
 					spawn_prefab(market_prefab, pos)
 				# Add more as needed: T, S, O, etc.
 
