@@ -8,9 +8,9 @@ const CITY_MAP = """
 #......TT......#
 #..............#
 #===..C....====#
-#H==M..S..M===E#
+#H==M..S..M====E
 W==XH=M==MA====#
-#H==M=O=M===H=#
+#H==M=O=M===H==#
 #N==HH====HH=N=#
 #L==K====F==L==#
 #===S==P==S====#
@@ -20,12 +20,20 @@ W==XH=M==MA====#
 """
 
 # Prefab paths
-var wall_prefab = preload("res://prefabs/WallSegment.tscn")
+var wallns_prefab = preload("res://prefabs/WallNS.tscn")
+var wallew_prefab = preload("res://prefabs/WallEW.tscn")
 var house_prefab = preload("res://prefabs/House.tscn")
 var houseb_prefab = preload("res://prefabs/HouseB.tscn")
 var housec_prefab = preload("res://prefabs/HouseC.tscn")
 var temple_prefab = preload("res://prefabs/TempleBlock.tscn")
 var market_prefab = preload("res://prefabs/MarketStall.tscn")
+var tavern_prefab = preload("res://prefabs/Tavern.tscn")
+var well_prefab = preload("res://prefabs/Well.tscn")
+var shrine_prefab = preload("res://prefabs/Shrine.tscn")
+var forge_prefab = preload("res://prefabs/Forge.tscn")
+var cistern_prefab = preload("res://prefabs/Cistern.tscn")
+var kiln_prefab = preload("res://prefabs/Kiln.tscn")
+var granary_prefab = preload("res://prefabs/Granary.tscn")
 
 # (then the rest of your existing code: tile_size, is_moving, camera, etc.)
 
@@ -88,8 +96,9 @@ func finish_move():
 
 func _ready():
 	generate_city()
-	# Position camera at East Gate entrance (clear street)
-	camera.global_transform.origin = Vector3(6.5, 0.5, 0.5)
+	# Spawn at street tile just west of East Gate
+	camera.global_transform.origin = Vector3(6.5, 0.5, -0.5)
+	camera.rotation_degrees.y = 90  # Face west into city
 
 func generate_city():
 	var lines = CITY_MAP.split("\n")
@@ -99,30 +108,60 @@ func generate_city():
 		var line = lines[row]
 		for col in range(line.length()):
 			var tile = line[col]
-			var pos = Vector3(col - 8, 0, row - 8) 
+			var pos = Vector3(col - 8 + 0.5, 0, row - 8 + 0.5)  # Align to grid centers
 			
 			match tile:
 				"#":
-					spawn_prefab(wall_prefab, pos)
+					# Use position to determine orientation
+					# Top/bottom rows = E-W walls, left/right columns = N-S walls
+					if row == 0 or row == lines.size() - 1:
+						# Top or bottom edge = horizontal wall
+						spawn_prefab(wallew_prefab, pos)
+					elif col == 0 or col == line.length() - 1:
+						# Left or right edge = vertical wall
+						spawn_prefab(wallns_prefab, pos)
+					else:
+						# Interior walls - check neighbors
+						var left_tile = line[col - 1] if col > 0 else " "
+						var right_tile = line[col + 1] if col < line.length() - 1 else " "
+						
+						if left_tile == "#" or right_tile == "#":
+							# Horizontal wall
+							spawn_prefab(wallew_prefab, pos)
+						else:
+							# Vertical wall
+							spawn_prefab(wallns_prefab, pos)
 				"H":
 					spawn_prefab(house_prefab, pos)
 				"N":
-					# Named houses use variant B (taller)
 					spawn_prefab(houseb_prefab, pos)
 				"L":
-					# L for "Low house: - shorter variant
 					spawn_prefab(housec_prefab, pos)
 				"T":
-					# Only spawn one temple at the first T
 					if not has_node("Temple"):
 						var temple = temple_prefab.instance()
 						temple.name = "Temple"
 						add_child(temple)
-						# Center it at rows 2-3, cols 7-8 → position (0, 0, -6)
-						temple.global_transform.origin = Vector3(0.5, 0, -6)  # Centered, spans 2×2
+						temple.global_transform.origin = Vector3(0, 0, -6)
 				"M":
 					spawn_prefab(market_prefab, pos)
-				# Add more as needed: T, S, O, etc.
+				"X":
+					spawn_prefab(tavern_prefab, pos)
+				"O":
+					spawn_prefab(well_prefab, pos)
+				"S":
+					spawn_prefab(shrine_prefab, pos)
+				"F":
+					spawn_prefab(forge_prefab, pos)
+				"C":
+					spawn_prefab(cistern_prefab, pos)
+				"K":
+					spawn_prefab(kiln_prefab, pos)
+				"R":
+					spawn_prefab(granary_prefab, pos)
+				"P":
+					# Plaza - leave empty (walkable space)
+					pass
 
 func spawn_prefab(prefab, position):
 	var instance = prefab.instance()
