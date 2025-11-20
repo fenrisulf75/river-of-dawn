@@ -3,3 +3,4 @@
 This is where Liora writes design docs, lore, city layouts, quests, etc.
 
 ---
+# MacBook setup complete
