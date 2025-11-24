@@ -6,7 +6,7 @@ const PASSAGE_MAP = """
 #############7##
 ##2####~~.###.##
 ##.##.#~..###.##
-##....3...###.##
+##....83..###.##
 ##..~~#...###6##
 ##..~~#..###...#
 ##...##..###...#
@@ -14,10 +14,10 @@ const PASSAGE_MAP = """
 ##...###..##...#
 #~..~###..##...#
 #~..~##...##...#
-#~.~~##~..4....#
+#~.~~##~..94...#
 #~1~###~~##~~.5#
 ##@#############
-##+#############
+################
 """
 
 onready var camera = $Camera
@@ -34,7 +34,8 @@ var tile_size = 1.0
 var collapsed_points = []
 var last_grid_position = Vector3.ZERO
 var waiting_for_input = false
-
+var first_move = true
+var shown_point1_message = false
 
 func _ready():
 	generate_passage()
@@ -46,7 +47,7 @@ func generate_passage():
 		var line = lines[row]
 		for col in range(line.length()):
 			var tile = line[col]
-			var pos = Vector3(col - 8 + 0.5, 0, row - 8 + 0.5)  # Center on grid
+			var pos = Vector3(col - 8 + 0.5, 0, row - 8 + 0.5)
 			
 			match tile:
 				"#":
@@ -58,20 +59,16 @@ func generate_passage():
 					spawn_water(pos)
 					spawn_ceiling(pos)
 				"@":
-					# Spawn point
 					camera.global_transform.origin = Vector3(pos.x, 0.5, pos.z)
 					spawn_floor(pos)
 					spawn_ceiling(pos)
-				"1", "2", "3", "4", "5", "6", "7":
-					# Event locations - treat as floor
+				"1", "2", "3", "4", "5", "6", "7", "8", "9":
 					spawn_floor(pos)
 					spawn_ceiling(pos)
 				"E":
-					# Exit to Yeriho - treat as floor for now
 					spawn_floor(pos)
 					spawn_ceiling(pos)
 				"+":
-					# Decorative door - treat as floor
 					spawn_floor(pos)
 					spawn_ceiling(pos)
 					
@@ -200,8 +197,15 @@ func rotate_camera(degrees):
 func finish_move():
 	is_moving = false
 	var current_pos = camera.global_transform.origin
-	check_collapse_point(current_pos)
-	check_exit(current_pos)  # Add this line
+	
+	if first_move:
+		first_move = false
+		show_entrance_message()
+	else:
+		check_current_tile(current_pos)  # Check tile we're standing on
+		check_point1_message(current_pos)
+	
+	check_exit(current_pos)
 	
 func finish_rotate():
 	is_rotating = false
@@ -224,18 +228,34 @@ func check_collapse_point(position):
 		if check_x >= 0 and check_x < line.length():
 			var tile = line[check_x]
 			
-			if tile in ["1", "3", "4"] and not tile in collapsed_points:
-				var spawn_pos = Vector3(4.5, 0, 6.5)
-				var to_exit = (position - spawn_pos).normalized()
-				to_exit.y = 0
-				var dot_product = forward.dot(to_exit)
+			if tile in ["3", "4"] and not tile in collapsed_points:
+				collapsed_points.append(tile)
 				
-				print("Collapse check - tile: ", tile, " dot: ", dot_product, " forward: ", forward)
+				# Find the wall spawn position (8 for 3, 9 for 4)
+				var wall_tile = "8" if tile == "3" else "9"
+				var wall_pos = find_tile_position(wall_tile)
 				
-				if dot_product > 0:
-					collapsed_points.append(tile)
-					var collapse_world_pos = Vector3(check_x - 8 + 0.5, 0, check_z - 8 + 0.5)
-					trigger_collapse(tile, collapse_world_pos)
+				trigger_collapse(tile, wall_pos)
+				
+func check_point1_message(position):
+	if shown_point1_message:
+		return
+	
+	var grid_x = int(round(position.x + 8 - 0.5))
+	var grid_z = int(round(position.z + 8 - 0.5))
+	
+	var lines = PASSAGE_MAP.split("\n")
+	if grid_z >= 0 and grid_z < lines.size():
+		var line = lines[grid_z]
+		if grid_x >= 0 and grid_x < line.length():
+			var tile = line[grid_x]
+			
+			if tile == "1":
+				shown_point1_message = true
+				message_label.text = "The passage has collapsed here.\nYou must press forward.\n\nPress SPACE to continue"
+				message_label.visible = true
+				waiting_for_input = true
+				
 func check_exit(position):
 	var grid_x = int(round(position.x + 8 - 0.5))
 	var grid_z = int(round(position.z + 8 - 0.5))
@@ -273,3 +293,35 @@ func trigger_exit():
 	# Transition after 2 seconds
 	yield(get_tree().create_timer(2.0), "timeout")
 	get_tree().change_scene("res://scenes/Yeriho.tscn")
+	
+func show_entrance_message():
+	message_label.text = "The passage collapses behind you.\nThere's no turning back now.\n\nPress SPACE to continue"
+	message_label.visible = true
+	waiting_for_input = true
+	
+func find_tile_position(target_tile):
+	var lines = PASSAGE_MAP.split("\n")
+	for row in range(lines.size()):
+		var line = lines[row]
+		for col in range(line.length()):
+			if line[col] == target_tile:
+				return Vector3(col - 8 + 0.5, 0, row - 8 + 0.5)
+	return Vector3.ZERO
+
+func check_current_tile(position):
+	var grid_x = int(round(position.x + 8 - 0.5))
+	var grid_z = int(round(position.z + 8 - 0.5))
+	
+	var lines = PASSAGE_MAP.split("\n")
+	if grid_z >= 0 and grid_z < lines.size():
+		var line = lines[grid_z]
+		if grid_x >= 0 and grid_x < line.length():
+			var tile = line[grid_x]
+			
+			if tile in ["3", "4"] and not tile in collapsed_points:
+				collapsed_points.append(tile)
+				
+				var wall_tile = "8" if tile == "3" else "9"
+				var wall_pos = find_tile_position(wall_tile)
+				
+				trigger_collapse(tile, wall_pos)
