@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>River of Dawn - Starter Zone Map</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            color: #f0e6d2;
+        }
+        
+        .map-container {
+            background: #2a2a2a;
+            padding: 20px;
+            border: 2px solid #4a4a4a;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .map {
+            display: grid;
+            grid-template-columns: repeat(32, 18px);
+            gap: 1px;
+            font-size: 14px;
+            line-height: 18px;
+        }
+        
+        .tile {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .cliff { background: #453828; color: #654838; }
+        .brine { background: #a68c40; color: #655520; }
+        .sea { background: #263847; color: #1a2530; }
+        .ground { background: #c0ae8c; color: #a09070; }
+        .path { background: #a6946f; color: #867650; }
+        .player { background: #3399dd; color: #fff; }
+        .cave { background: #e0b050; color: #000; font-weight: bold; }
+        .shrine { background: #e0b050; color: #000; font-weight: bold; }
+        .dog { background: #cc3333; color: #fff; font-weight: bold; }
+        .satchel { background: #e0b050; color: #000; font-weight: bold; }
+        .loot { background: #e0b050; color: #000; font-weight: bold; }
+        .skeleton { background: #e0b050; color: #000; font-weight: bold; }
+        .lore { background: #e0b050; color: #000; font-weight: bold; }
+        
+        .legend {
+            background: #2a2a2a;
+            padding: 20px;
+            border: 2px solid #4a4a4a;
+            max-width: 600px;
+        }
+        
+        .legend h2 {
+            margin-top: 0;
+            color: #f0e6d2;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        .legend-tile {
+            width: 30px;
+            height: 30px;
+            display: inline-block;
+            margin-right: 15px;
+            border: 1px solid #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .info {
+            background: #2a2a2a;
+            padding: 20px;
+            border: 2px solid #4a4a4a;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+        
+        .info h2 {
+            margin-top: 0;
+            color: #f0e6d2;
+        }
+    </style>
+</head>
+<body>
+    <h1>River of Dawn - Starter Zone: Dead Sea Shore</h1>
+    
+    <div class="map-container">
+        <div class="map" id="mapGrid"></div>
+    </div>
+    
+    <div class="legend">
+        <h2>Map Legend</h2>
+        <div class="legend-item">
+            <span class="legend-tile cliff">#</span>
+            <span>Cliff / Solid Rock (impassable)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile brine">X</span>
+            <span>Brine Pits (impassable, toxic fumes)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile sea">~</span>
+            <span>Dead Sea (impassable water)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile ground">.</span>
+            <span>Walkable Ground (sand, dirt, rock)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile path">:</span>
+            <span>Worn Footpath (keeper's trail)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile player">P</span>
+            <span>Player Spawn Point</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile cave">G</span>
+            <span>Cave Entrance (locked, needs key)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile shrine">S</span>
+            <span>Shrine of Ba'al (ruined)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile dog">D</span>
+            <span>Hyena Encounter (combat)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile satchel">K</span>
+            <span>Torn Satchel (empty)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile loot">L</span>
+            <span>Loot (dagger + armor)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile skeleton">!</span>
+            <span>Skeleton Keeper (note)</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-tile lore">B</span>
+            <span>Lore Stone (Dead Sea marker)</span>
+        </div>
+    </div>
+    
+    <div class="info">
+        <h2>Player Flow</h2>
+        <ol>
+            <li>Spawn at <strong>P</strong> on the Dead Sea shore</li>
+            <li>Move north → find <strong>L</strong> (loot: dagger + armor)</li>
+            <li>Continue north → find <strong>!</strong> (skeleton + note about satchel)</li>
+            <li>Move north → read <strong>B</strong> (lore stone identifying Dead Sea)</li>
+            <li>Brine pits block east → move west into canyon</li>
+            <li>Find <strong>K</strong> (torn satchel - empty, no key)</li>
+            <li>Exit canyon → <strong>D</strong> (hyena) attacks!</li>
+            <li>Defeat hyena → key drops from belly</li>
+            <li>Optional: visit <strong>S</strong> (Shrine of Ba'al)</li>
+            <li>Follow path to <strong>G</strong> (cave entrance)</li>
+            <li>Use key → enter cave → transition to PassageToYeriho</li>
+        </ol>
+    </div>
+    
+    <script>
+        const map = `##################XXXXXXXXXXXXXX
+################...XXXXXXXXXXXXX
+########.....D........XXXXXXXXXX
+#######....###.........XXXXXXXXX
+######...###..............XXXXXX
+#####...#####.............XXXXXX
+####...#######.............XXXXX
+####...#######...............XXX
+####...###S###...............XX~
+###...###.::..................~~
+###...###..:..................~~
+###.K.###..::.................~~
+###..#####..:.................~~
+####.#####..:.............L...~~
+##########.::.............!.~~~~
+#########..:................~~~~
+#########..:...XXX..........~~~~
+########...:...XXXX.........~~~~
+#######...::..XXXX........B.~~~~
+##.###..:::...XXXX..........~~~~
+##......:....XXXXX.........~~~~~
+##.....::...XXXXXX........~~~~~~
+#G::::::...XXXXXXX........~~~~~~
+##.........XXXXXX.........~~~~~~
+##.........XXXXXXX.......~~~~~~~
+##........XXXXXXXX.......~~~~~~~
+###.......XXXXXXX........~~~~~~~
+###.......XXXXXXX.......~~~~~~~~
+####......XXXXXXXX......~~~~~~~~
+#######..XXXXXXXXX.....P~~~~~~~~
+#########XXXXXXXXXXX....~~~~~~~~
+################XXXXXXXX~~~~~~~~`;
+
+        const tileClasses = {
+            '#': 'cliff',
+            'X': 'brine',
+            '~': 'sea',
+            '.': 'ground',
+            ':': 'path',
+            'P': 'player',
+            'G': 'cave',
+            'S': 'shrine',
+            'D': 'dog',
+            'K': 'satchel',
+            'L': 'loot',
+            '!': 'skeleton',
+            'B': 'lore'
+        };
+
+        const mapGrid = document.getElementById('mapGrid');
+        const lines = map.split('\n');
+
+        lines.forEach(line => {
+            for (let char of line) {
+                const tile = document.createElement('div');
+                tile.className = `tile ${tileClasses[char] || 'ground'}`;
+                tile.textContent = char;
+                mapGrid.appendChild(tile);
+            }
+        });
+    </script>
+</body>
+</html>
