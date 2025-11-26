@@ -32,9 +32,15 @@ func start_combat(player_has_weapon):
 	combat_active = true
 	combat_panel.visible = true
 	
-	# Adjust damage if no weapon
-	if not player_has_weapon:
+	# Use PlayerData HP
+	player_hp = PlayerData.hp
+	player_max_hp = PlayerData.max_hp
+	
+	# Adjust damage if no weapon equipped
+	if PlayerData.equipped_weapon != "dagger":
 		player_damage_range = [1, 3]
+	else:
+		player_damage_range = [3, 6]
 	
 	update_display()
 	show_action("A hyena attacks!")
@@ -57,7 +63,13 @@ func on_attack_pressed():
 	
 	# Player attacks
 	var damage = randi() % (player_damage_range[1] - player_damage_range[0] + 1) + player_damage_range[0]
+	
+	# Apply weapon bonus
+	if PlayerData.equipped_weapon == "dagger":
+		damage += 2  # Dagger adds +2 damage
+	
 	enemy_hp -= damage
+	enemy_hp = max(0, enemy_hp)  # Cap at 0
 	show_action("You strike for %d damage!" % damage)
 	update_display()
 	
@@ -89,7 +101,13 @@ func enemy_turn(player_defending = false):
 	if player_defending:
 		damage = int(damage * 0.5)  # Defending reduces damage
 	
+	# Apply armor bonus
+	if PlayerData.equipped_armor == "armor":
+		damage = max(1, damage - 1)  # Armor reduces damage by 1 (min 1)
+	
 	player_hp -= damage
+	player_hp = max(0, player_hp)  # Cap at 0
+	PlayerData.hp = player_hp  # Update global HP
 	show_action("%s attacks for %d damage!" % [enemy_name, damage])
 	update_display()
 	

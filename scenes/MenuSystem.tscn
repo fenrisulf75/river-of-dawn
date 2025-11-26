@@ -1,0 +1,134 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://scenes/MenuSystem.gd" type="Script" id=1]
+
+[node name="MenuSystem" type="CanvasLayer"]
+layer = 99
+script = ExtResource( 1 )
+
+[node name="MenuPanel" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -400.0
+margin_top = -300.0
+margin_right = 400.0
+margin_bottom = 300.0
+
+[node name="Tabs" type="TabContainer" parent="MenuPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+
+[node name="Inventory" type="Control" parent="MenuPanel/Tabs"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label" type="Label" parent="MenuPanel/Tabs/Inventory"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "=== INVENTORY ===
+
+(Items will appear here)"
+autowrap = true
+
+[node name="Character" type="Control" parent="MenuPanel/Tabs"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Label" type="Label" parent="MenuPanel/Tabs/Character"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "=== CHARACTER ===
+
+HP: 20/20
+
+[Attributes locked until awakening]"
+autowrap = true
+
+[node name="Combat" type="Control" parent="MenuPanel/Tabs"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="EnemyPortrait" type="ColorRect" parent="MenuPanel/Tabs/Combat"]
+anchor_bottom = 1.0
+margin_right = 300.0
+color = Color( 0.3, 0.3, 0.3, 1 )
+
+[node name="EnemyName" type="Label" parent="MenuPanel/Tabs/Combat"]
+anchor_right = 0.4
+margin_top = 10.0
+margin_bottom = 40.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "Hyena"
+align = 1
+
+[node name="EnemyHP" type="Label" parent="MenuPanel/Tabs/Combat"]
+anchor_right = 0.4
+margin_top = 40.0
+margin_bottom = 70.0
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "Enemy HP: 15/15"
+align = 1
+
+[node name="CombatLog" type="RichTextLabel" parent="MenuPanel/Tabs/Combat"]
+anchor_left = 0.4
+anchor_right = 1.0
+anchor_bottom = 0.7
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+text = "Combat begins!"
+
+[node name="Actions" type="VBoxContainer" parent="MenuPanel/Tabs/Combat"]
+anchor_left = 0.4
+anchor_top = 0.7
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = -10.0
+
+[node name="AttackButton" type="Button" parent="MenuPanel/Tabs/Combat/Actions"]
+margin_right = 446.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 0, 40 )
+text = "Attack"
+
+[node name="DefendButton" type="Button" parent="MenuPanel/Tabs/Combat/Actions"]
+margin_top = 44.0
+margin_right = 446.0
+margin_bottom = 84.0
+rect_min_size = Vector2( 0, 40 )
+text = "Defend"

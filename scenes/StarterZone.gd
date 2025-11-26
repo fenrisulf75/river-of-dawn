@@ -61,10 +61,12 @@ var has_key = false
 var dog_defeated = false
 var examined_skeleton = false
 var examined_satchel = false
+var dog_triggered = false  # NEW: Track if dog combat has been triggered
 var movement_speed = 0.15  # seconds per tile
 
 # === INTERACTION STATE ===
 var interactable_objects = {}  # {grid_pos: {type, used, data}}
+var required_interactions = {}  # Track which interactions are required first time
 
 # === REFERENCES ===
 onready var camera = $Camera2D
@@ -107,52 +109,56 @@ func generate_zone():
 			
 			match tile:
 				"#":
-					draw_tile(pos, COLOR_CLIFF, false)
+					draw_tile(pos, COLOR_CLIFF)
 				"X":
-					draw_tile(pos, COLOR_BRINE, false)
+					draw_tile(pos, COLOR_BRINE)
 				"~":
-					draw_tile(pos, COLOR_SEA, false)
+					draw_tile(pos, COLOR_SEA)
 				".":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 				":":
-					draw_tile(pos, COLOR_PATH, true)
+					draw_tile(pos, COLOR_PATH)
 				"P":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					player_grid_x = col
 					player_grid_y = row
 				"G":
-					draw_tile(pos, COLOR_PATH, true)
+					draw_tile(pos, COLOR_PATH)
 					add_interactable(col, row, "cave", {"locked": true})
 					draw_marker(pos, "G", COLOR_INTERACT)
 				"S":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "shrine", {})
 					draw_marker(pos, "S", COLOR_INTERACT)
 				"D":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "dog", {"alive": true})
 					# Don't draw marker yet - will appear after satchel is examined
 				"K":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "satchel", {"examined": false})
 					draw_marker(pos, "K", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true
 				"L":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "loot", {"taken": false})
 					draw_marker(pos, "L", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true
 				"!":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "skeleton", {"examined": false})
 					draw_marker(pos, "!", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true
 				"B":
-					draw_tile(pos, COLOR_GROUND, true)
+					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "lore_stone", {"read": false})
 					draw_marker(pos, "B", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true
 	
 	# Draw player
 	draw_player()
 
-func draw_tile(pos, color, walkable):
+func draw_tile(pos, color):
 	var rect = ColorRect.new()
 	rect.rect_position = pos
 	rect.rect_size = Vector2(TILE_SIZE, TILE_SIZE)
@@ -165,7 +171,7 @@ func draw_marker(pos, text, color):
 	label.rect_position = pos + Vector2(TILE_SIZE / 4, TILE_SIZE / 8)
 	label.text = text
 	label.add_color_override("font_color", color)
-	#label.add_font_size_override("font_size", 16)
+	# Note: add_font_size_override doesn't exist in Godot 3.x - removed
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(label)
 
@@ -217,7 +223,7 @@ func _process(_delta):
 	if is_moving:
 		return
 	
-	# Check for interaction
+	# Check for interaction - ONLY on current tile, not adjacent
 	if Input.is_action_just_pressed("ui_accept"):
 		check_interaction()
 		return
@@ -280,15 +286,25 @@ func finish_move():
 	update_prompt()
 
 func check_triggers():
+	var pos = player_grid_pos()
+	
+	# Check if we landed on a required interaction tile
+	if required_interactions.has(pos):
+		if interactable_objects.has(pos):
+			var obj = interactable_objects[pos]
+			# Auto-trigger required interactions
+			interact_with(obj["type"], obj["data"], pos)
+			required_interactions.erase(pos)  # No longer required after first trigger
+			return
+	
 	# Check if dog should attack after satchel examination
-	# Dog attacks on first movement after leaving canyon area
-	if examined_satchel and not dog_defeated:
-		# Check if we've moved away from the satchel area (canyon)
-		var satchel_pos = find_tile_position("K")
-		if satchel_pos != Vector2(-1, -1):
-			var dist_from_satchel = player_grid_pos().distance_to(satchel_pos)
-			# If player has moved 3+ tiles away from satchel, trigger combat
-			if dist_from_satchel >= 3.0:
+	# Dog attacks when player reaches the D marker position
+	if examined_satchel and not dog_defeated and not dog_triggered:
+		var dog_pos = find_tile_position("D")
+		if dog_pos != Vector2(-1, -1):
+			# If player is at or very close to dog position
+			if pos.distance_to(dog_pos) < 1.5:
+				dog_triggered = true
 				trigger_dog_encounter()
 
 func check_hazards(x, y):
@@ -310,44 +326,35 @@ func check_hazards(x, y):
 func check_interaction():
 	var pos = player_grid_pos()
 	
+	# ONLY check current tile - no adjacent checking
 	if interactable_objects.has(pos):
 		var obj = interactable_objects[pos]
 		interact_with(obj["type"], obj["data"], pos)
-	else:
-		# Check adjacent tiles
-		var adjacent = [
-			player_grid_pos() + Vector2(-1, 0),
-			player_grid_pos() + Vector2(1, 0),
-			player_grid_pos() + Vector2(0, -1),
-			player_grid_pos() + Vector2(0, 1)
-		]
-		
-		for adj in adjacent:
-			if interactable_objects.has(adj):
-				var obj = interactable_objects[adj]
-				interact_with(obj["type"], obj["data"], adj)
-				return
 
 func interact_with(type, data, pos):
 	match type:
 		"loot":
 			if not data["taken"]:
-				show_message("You find a rust-pocked dagger and tattered cloth armor.\n\nPress SPACE to take")
+				show_message("You find a rust-pocked dagger and tattered cloth armor.\n\n[TUTORIAL]\nPress TAB to open your inventory.\nSelect items and press SPACE to equip them.\nEquipped items increase your combat effectiveness.\n\nPress SPACE to continue")
 				data["taken"] = true
-				has_dagger = true
-				has_armor = true
+				PlayerData.has_dagger = true
+				PlayerData.has_armor = true
 				remove_marker_at(pos)
 		
 		"skeleton":
 			if not data["examined"]:
-				show_message("A skeleton reaches toward the shore.\n\nA note clutched in bone fingers reads:\n\n\"The dogs took my food satchel.\nIt was all I had.\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
+				show_message("A skeleton reaches toward the shore.\n\nA note clutched in bone fingers reads:\n\n\"The dogs took my food satchel with the key.\nIt was all I had.\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 				data["examined"] = true
 				examined_skeleton = true
 				remove_marker_at(pos)
+			else:
+				# Can re-read the note
+				show_message("The keeper's note:\n\n\"The dogs took my food satchel with the key.\nIt was all I had.\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 		
 		"lore_stone":
+			# Using Unicode for proper diacritical marks - Godot should support this
+			show_message("A carved warning stone:\n\nYām ha-Melaḥ — The Salt Sea.\nA place forsaken by gods and men.\n\nPress SPACE to continue")
 			if not data["read"]:
-				show_message("A carved warning stone:\n\nYām ha-Melaḥ — The Salt Sea.\nA place forsaken by gods and men.\n\nPress SPACE to continue")
 				data["read"] = true
 		
 		"satchel":
@@ -362,6 +369,9 @@ func interact_with(type, data, pos):
 				if dog_pos != Vector2(-1, -1):
 					var dog_screen_pos = Vector2(dog_pos.x * TILE_SIZE, dog_pos.y * TILE_SIZE)
 					draw_marker(dog_screen_pos, "D", Color(0.8, 0.2, 0.2))
+			else:
+				# Can re-examine
+				show_message("The torn satchel with food scraps and puncture marks.\n\nPress SPACE to continue")
 		
 		"shrine":
 			show_message("A forgotten shrine to Ba'al.\nThe keeper never returned.\n\nPress SPACE to continue")
@@ -374,8 +384,8 @@ func interact_with(type, data, pos):
 				# Will trigger transition on next accept
 		
 		"dog":
-			if data["alive"]:
-				trigger_dog_encounter()
+			# Dog is only triggered via check_triggers, not direct interaction
+			pass
 
 func trigger_dog_encounter():
 	in_combat = true
@@ -420,25 +430,17 @@ func show_quick_message(text, duration):
 
 func update_prompt():
 	var pos = player_grid_pos()
-	var has_nearby = false
 	
-	# Check current and adjacent tiles
-	var check_positions = [
-		pos,
-		pos + Vector2(-1, 0), pos + Vector2(1, 0),
-		pos + Vector2(0, -1), pos + Vector2(0, 1)
-	]
+	# ONLY check current tile for interactions
+	if interactable_objects.has(pos):
+		var obj = interactable_objects[pos]
+		# Don't show prompt for dog (it's auto-triggered)
+		if obj["type"] != "dog":
+			prompt_label.text = "Press SPACE to interact"
+			prompt_label.visible = true
+			return
 	
-	for check_pos in check_positions:
-		if interactable_objects.has(check_pos):
-			has_nearby = true
-			break
-	
-	if has_nearby:
-		prompt_label.text = "Press SPACE to interact"
-		prompt_label.visible = true
-	else:
-		prompt_label.visible = false
+	prompt_label.visible = false
 
 func update_camera():
 	camera.position = Vector2(player_grid_x * TILE_SIZE, player_grid_y * TILE_SIZE)
@@ -468,11 +470,10 @@ func check_cave_entry():
 	var pos = player_grid_pos()
 	var cave_pos = find_tile_position("G")
 	
-	# Check if player is at or adjacent to cave
-	if pos == cave_pos or pos.distance_to(cave_pos) <= 1.0:
+	# Check if player is at cave
+	if pos == cave_pos:
 		if has_key:
 			# Transition to PassageToYeriho
 			show_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse")
 			yield(get_tree().create_timer(2.0), "timeout")
-			# get_tree().change_scene("res://scenes/PassageToYeriho.tscn")
-			print("Would transition to PassageToYeriho here")
+			get_tree().change_scene("res://scenes/PassageToYeriho.tscn")
