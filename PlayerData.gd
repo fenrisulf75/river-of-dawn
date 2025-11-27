@@ -65,13 +65,13 @@ func restore_spirit(amount):
 
 func equip_weapon(weapon_name):
 	equipped_weapon = weapon_name
-	# Dagger adds +2 damage
-	print("Equipped: " + weapon_name)
+	# Dagger: +2 attack damage (applied in combat)
+	print("Equipped: " + weapon_name + " (+2 attack damage)")
 
 func equip_armor(armor_name):
 	equipped_armor = armor_name
-	# Armor reduces damage by 1
-	print("Equipped: " + armor_name)
+	# Armor: -1 damage taken, minimum 1 (applied in combat)
+	print("Equipped: " + armor_name + " (-1 damage taken)")
 
 func awaken():
 	# Called after Temple ritual

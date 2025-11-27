@@ -1,17 +1,17 @@
 extends CanvasLayer
 
-# Simple combat UI for the dog/hyena encounter
+# Simple combat UI for the dog encounter
 
 signal combat_finished(player_won)
 
 var player_hp = 20
 var player_max_hp = 20
-var enemy_hp = 15
-var enemy_max_hp = 15
-var enemy_name = "Hyena"
+var enemy_hp = 10  # Reduced from 15
+var enemy_max_hp = 10
+var enemy_name = "Dog"
 
 var player_damage_range = [3, 6]  # With dagger
-var enemy_damage_range = [2, 5]
+var enemy_damage_range = [1, 3]  # Reduced from [2, 5]
 
 var combat_active = false
 var waiting_for_player = false
@@ -43,7 +43,7 @@ func start_combat(player_has_weapon):
 		player_damage_range = [3, 6]
 	
 	update_display()
-	show_action("A hyena attacks!")
+	show_action("A dog attacks!")
 	yield(get_tree().create_timer(1.5), "timeout")
 	player_turn()
 
@@ -130,7 +130,7 @@ func end_combat(player_won):
 	waiting_for_player = false
 	
 	if player_won:
-		show_action("Victory! The hyena falls.")
+		show_action("Victory! The dog falls.")
 		yield(get_tree().create_timer(2.0), "timeout")
 		show_action("The belly tears open... something falls out.\n\nYou find a key!")
 		yield(get_tree().create_timer(3.0), "timeout")

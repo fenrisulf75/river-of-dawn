@@ -49,7 +49,8 @@ const COLOR_SEA = Color(0.15, 0.25, 0.35)     # Dark blue-grey
 const COLOR_GROUND = Color(0.75, 0.68, 0.55)  # Sandy tan
 const COLOR_PATH = Color(0.65, 0.58, 0.45)    # Worn path brown
 const COLOR_PLAYER = Color(0.2, 0.6, 0.9)     # Blue
-const COLOR_INTERACT = Color(0.9, 0.7, 0.3)   # Golden yellow
+const COLOR_INTERACT = Color(0.0, 1.0, 1.0)   # Bright cyan
+const COLOR_DOG = Color(1.0, 0.2, 0.2)        # Bright red for dog
 
 # === PLAYER STATE ===
 var player_grid_x = 0
@@ -78,6 +79,10 @@ var current_message = ""
 var in_combat = false
 
 func _ready():
+	# Show HUD for gameplay
+	if has_node("/root/HUD"):
+		get_node("/root/HUD").show()
+	
 	# Generate the map
 	generate_zone()
 	
@@ -126,10 +131,12 @@ func generate_zone():
 					draw_tile(pos, COLOR_PATH)
 					add_interactable(col, row, "cave", {"locked": true})
 					draw_marker(pos, "G", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true  # Always check on step
 				"S":
 					draw_tile(pos, COLOR_GROUND)
-					add_interactable(col, row, "shrine", {})
+					add_interactable(col, row, "shrine", {"visited": false})
 					draw_marker(pos, "S", COLOR_INTERACT)
+					required_interactions[Vector2(col, row)] = true
 				"D":
 					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "dog", {"alive": true})
@@ -137,13 +144,13 @@ func generate_zone():
 				"K":
 					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "satchel", {"examined": false})
-					draw_marker(pos, "K", COLOR_INTERACT)
-					required_interactions[Vector2(col, row)] = true
+					# Don't draw marker yet - will appear after skeleton
+					# Don't add to required_interactions yet - skeleton reveals it
 				"L":
 					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "loot", {"taken": false})
-					draw_marker(pos, "L", COLOR_INTERACT)
-					required_interactions[Vector2(col, row)] = true
+					# Don't draw marker yet - will appear after skeleton
+					# Don't add to required_interactions yet - skeleton reveals it
 				"!":
 					draw_tile(pos, COLOR_GROUND)
 					add_interactable(col, row, "skeleton", {"examined": false})
@@ -211,10 +218,17 @@ func _process(_delta):
 	if in_combat:
 		return
 	
+	# Block all input if menu is open
+	if MenuSystem.menu_open:
+		return
+	
 	if waiting_for_input:
 		if Input.is_action_just_pressed("ui_accept"):
 			waiting_for_input = false
 			message_label.visible = false
+			
+			# Update prompt now that message is gone
+			update_prompt()
 			
 			# Check if we're at cave entrance with key
 			check_cave_entry()
@@ -283,7 +297,9 @@ func is_walkable(x, y):
 func finish_move():
 	is_moving = false
 	check_triggers()
-	update_prompt()
+	# Only update prompt if not waiting for input (no message showing)
+	if not waiting_for_input:
+		update_prompt()
 
 func check_triggers():
 	var pos = player_grid_pos()
@@ -292,9 +308,28 @@ func check_triggers():
 	if required_interactions.has(pos):
 		if interactable_objects.has(pos):
 			var obj = interactable_objects[pos]
+			var data = obj["data"]
+			
+			# Don't auto-trigger if already completed
+			if data.has("examined") and data["examined"]:
+				required_interactions.erase(pos)
+				return
+			if data.has("taken") and data["taken"]:
+				required_interactions.erase(pos)
+				return
+			if data.has("read") and data["read"]:
+				required_interactions.erase(pos)
+				return
+			if data.has("visited") and data["visited"]:
+				required_interactions.erase(pos)
+				return
+			
 			# Auto-trigger required interactions
 			interact_with(obj["type"], obj["data"], pos)
-			required_interactions.erase(pos)  # No longer required after first trigger
+			
+			# Don't erase cave from required_interactions - check every time
+			if obj["type"] != "cave":
+				required_interactions.erase(pos)  # No longer required after first trigger
 			return
 	
 	# Check if dog should attack after satchel examination
@@ -340,22 +375,40 @@ func interact_with(type, data, pos):
 				PlayerData.has_dagger = true
 				PlayerData.has_armor = true
 				remove_marker_at(pos)
+				# Also remove from interactables so no more prompt
+				interactable_objects.erase(pos)
 		
 		"skeleton":
 			if not data["examined"]:
-				show_message("A skeleton reaches toward the shore.\n\nA note clutched in bone fingers reads:\n\n\"The dogs took my food satchel with the key.\nIt was all I had.\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
+				show_message("A skeleton reaches toward something...\n\nA note clutched in bone fingers reads:\n\n\"Dogs attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 				data["examined"] = true
 				examined_skeleton = true
-				remove_marker_at(pos)
+				# Don't remove marker - keep "!" visible
+				
+				# Reveal K and L markers AND make them auto-trigger
+				var satchel_pos = find_tile_position("K")
+				if satchel_pos != Vector2(-1, -1):
+					var satchel_screen_pos = Vector2(satchel_pos.x * TILE_SIZE, satchel_pos.y * TILE_SIZE)
+					draw_marker(satchel_screen_pos, "K", COLOR_INTERACT)
+					required_interactions[satchel_pos] = true  # Make K auto-trigger
+				
+				var loot_pos = find_tile_position("L")
+				if loot_pos != Vector2(-1, -1):
+					var loot_screen_pos = Vector2(loot_pos.x * TILE_SIZE, loot_pos.y * TILE_SIZE)
+					draw_marker(loot_screen_pos, "L", COLOR_INTERACT)
+					required_interactions[loot_pos] = true  # Make L auto-trigger
 			else:
 				# Can re-read the note
-				show_message("The keeper's note:\n\n\"The dogs took my food satchel with the key.\nIt was all I had.\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
+				show_message("The keeper's note:\n\n\"Dogs attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 		
 		"lore_stone":
-			# Using Unicode for proper diacritical marks - Godot should support this
-			show_message("A carved warning stone:\n\nYām ha-Melaḥ — The Salt Sea.\nA place forsaken by gods and men.\n\nPress SPACE to continue")
 			if not data["read"]:
+				# First time - auto-trigger
+				show_message("A carved warning stone:\n\nYām ha-Melaḥ — The Salt Sea.\nA place forsaken by gods and men.\n\nPress SPACE to continue")
 				data["read"] = true
+			else:
+				# Subsequent visits - player can read again
+				show_message("A carved warning stone:\n\nYām ha-Melaḥ — The Salt Sea.\nA place forsaken by gods and men.\n\nPress SPACE to continue")
 		
 		"satchel":
 			if not data["examined"]:
@@ -368,20 +421,28 @@ func interact_with(type, data, pos):
 				var dog_pos = find_tile_position("D")
 				if dog_pos != Vector2(-1, -1):
 					var dog_screen_pos = Vector2(dog_pos.x * TILE_SIZE, dog_pos.y * TILE_SIZE)
-					draw_marker(dog_screen_pos, "D", Color(0.8, 0.2, 0.2))
+					draw_marker(dog_screen_pos, "D", COLOR_DOG)
 			else:
 				# Can re-examine
 				show_message("The torn satchel with food scraps and puncture marks.\n\nPress SPACE to continue")
 		
 		"shrine":
-			show_message("A forgotten shrine to Ba'al.\nThe keeper never returned.\n\nPress SPACE to continue")
+			if not data["visited"]:
+				# First time - auto-trigger
+				show_message("A forgotten shrine to Ba'al.\nThe keeper never returned.\n\nPress SPACE to continue")
+				data["visited"] = true
+			else:
+				# Subsequent visits - can re-examine
+				show_message("A forgotten shrine to Ba'al.\nThe keeper never returned.\n\nPress SPACE to continue")
 		
 		"cave":
-			if data["locked"] and not has_key:
+			if data["locked"] and not PlayerData.has_key:
 				show_message("The cave entrance is locked.\nYou need a key.\n\nPress SPACE to continue")
-			elif has_key:
+				# Don't remove from required_interactions - check again next time
+			elif PlayerData.has_key:
 				show_message("The key fits. Wind howls from within...\n\nPress SPACE to enter")
 				# Will trigger transition on next accept
+				# Don't remove from required_interactions yet
 		
 		"dog":
 			# Dog is only triggered via check_triggers, not direct interaction
@@ -396,7 +457,7 @@ func on_combat_finished(player_won):
 	in_combat = false
 	
 	if player_won:
-		has_key = true
+		PlayerData.has_key = true
 		dog_defeated = true
 		
 		# Remove dog marker
@@ -406,7 +467,7 @@ func on_combat_finished(player_won):
 			# Also remove from interactables
 			interactable_objects.erase(dog_pos)
 		
-		show_message("You obtained the Cave Key!\n\nPress SPACE to continue")
+		show_message("You search the dog's body.\n\nTorn belly... bloodstained cloth...\nA key gleams in the remains.\n\nThis must be the keeper's key!\n\nPress SPACE to continue")
 	else:
 		show_message("You have been defeated...\n\nGame Over\n\nPress SPACE to restart")
 		yield(get_tree().create_timer(1.0), "timeout")
@@ -434,11 +495,38 @@ func update_prompt():
 	# ONLY check current tile for interactions
 	if interactable_objects.has(pos):
 		var obj = interactable_objects[pos]
+		var data = obj["data"]
+		
 		# Don't show prompt for dog (it's auto-triggered)
-		if obj["type"] != "dog":
-			prompt_label.text = "Press SPACE to interact"
-			prompt_label.visible = true
+		if obj["type"] == "dog":
+			prompt_label.visible = false
 			return
+		
+		# Don't show prompt for K or L if skeleton hasn't been examined yet
+		if (obj["type"] == "satchel" or obj["type"] == "loot") and not examined_skeleton:
+			prompt_label.visible = false
+			return
+		
+		# Don't show prompt if this is a required interaction that's been completed
+		if required_interactions.has(pos):
+			# Check if it's been examined/taken/read
+			if data.has("examined") and data["examined"]:
+				prompt_label.visible = false
+				return
+			if data.has("taken") and data["taken"]:
+				prompt_label.visible = false
+				return
+			if data.has("read") and data["read"]:
+				prompt_label.visible = false
+				return
+			if data.has("visited") and data["visited"]:
+				prompt_label.visible = false
+				return
+		
+		# Show prompt for optional interactions and unexamined required ones
+		prompt_label.text = "Press SPACE to interact"
+		prompt_label.visible = true
+		return
 	
 	prompt_label.visible = false
 
@@ -472,7 +560,7 @@ func check_cave_entry():
 	
 	# Check if player is at cave
 	if pos == cave_pos:
-		if has_key:
+		if PlayerData.has_key:
 			# Transition to PassageToYeriho
 			show_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse")
 			yield(get_tree().create_timer(2.0), "timeout")

@@ -143,6 +143,10 @@ func spawn_ceiling(position):
 	ceiling.global_transform.origin = Vector3(position.x, 2.45, position.z)
 	
 func _process(_delta):
+	# Block all input if menu is open
+	if MenuSystem.menu_open:
+		return
+
 	if waiting_for_input:
 		if Input.is_action_just_pressed("ui_accept"):  # SPACE or ENTER
 			waiting_for_input = false

@@ -12,6 +12,8 @@ onready var combat_tab = $MenuPanel/Tabs/Combat
 
 var menu_open = false
 var in_combat = false
+var selected_item_index = 0
+var inventory_items = []
 
 func _ready():
 	menu_panel.visible = false
@@ -20,9 +22,32 @@ func _process(_delta):
 	if Input.is_action_just_pressed("ui_focus_next"):  # TAB key
 		toggle_menu()
 	
+	# Switch tabs with LEFT/RIGHT when NOT on inventory tab
+	if menu_open and tab_container.current_tab != 0:
+		if Input.is_action_just_pressed("ui_left"):
+			var new_tab = max(0, tab_container.current_tab - 1)
+			tab_container.current_tab = new_tab
+		elif Input.is_action_just_pressed("ui_right"):
+			var new_tab = min(tab_container.get_tab_count() - 1, tab_container.current_tab + 1)
+			tab_container.current_tab = new_tab
+	
 	# Hide combat tab when not in combat
 	if combat_tab:
 		combat_tab.visible = in_combat
+	
+	# Handle inventory navigation when menu is open and on inventory tab
+	if menu_open and tab_container.current_tab == 0:
+		handle_inventory_input()
+
+func handle_inventory_input():
+	if Input.is_action_just_pressed("ui_up"):
+		selected_item_index = max(0, selected_item_index - 1)
+		update_inventory()
+	elif Input.is_action_just_pressed("ui_down"):
+		selected_item_index = min(len(inventory_items) - 1, selected_item_index + 1)
+		update_inventory()
+	elif Input.is_action_just_pressed("ui_accept"):  # SPACE to equip
+		equip_selected_item()
 
 func toggle_menu():
 	menu_open = not menu_open
@@ -36,43 +61,61 @@ func toggle_menu():
 
 func update_inventory():
 	var inv_text = "=== INVENTORY ===\n\n"
+	inventory_items = []
 	
+	# Build list of equippable items
 	if PlayerData.has_dagger:
-		inv_text += "Weapon: Rust-pocked Dagger"
-		if PlayerData.equipped_weapon == "dagger":
-			inv_text += " [EQUIPPED]\n"
-		else:
-			inv_text += " (Press E to equip)\n"
+		inventory_items.append({"name": "Rust-pocked Dagger", "type": "weapon", "equipped": PlayerData.equipped_weapon == "dagger"})
 	
 	if PlayerData.has_armor:
-		inv_text += "Armor: Tattered Cloth Armor"
-		if PlayerData.equipped_armor == "armor":
-			inv_text += " [EQUIPPED]\n"
-		else:
-			inv_text += " (Press A to equip)\n"
+		inventory_items.append({"name": "Tattered Cloth Armor", "type": "armor", "equipped": PlayerData.equipped_armor == "armor"})
 	
+	# Non-equippable items
 	if PlayerData.has_torch:
-		inv_text += "Torch\n"
+		inventory_items.append({"name": "Torch", "type": "item", "equipped": false})
 	
 	if PlayerData.has_key:
-		inv_text += "Cave Key\n"
+		inventory_items.append({"name": "Cave Key", "type": "item", "equipped": false})
 	
-	if not PlayerData.has_dagger and not PlayerData.has_armor and not PlayerData.has_torch and not PlayerData.has_key:
-		inv_text += "(No items yet)"
+	# Clamp selected index
+	if len(inventory_items) > 0:
+		selected_item_index = clamp(selected_item_index, 0, len(inventory_items) - 1)
+	else:
+		selected_item_index = 0
+		inv_text += "(No items yet)\n\n"
+		inv_text += "Use Arrow Keys to select\nPress SPACE to equip"
+		if inventory_tab.has_node("Label"):
+			inventory_tab.get_node("Label").text = inv_text
+		return
+	
+	# Display items
+	for i in range(len(inventory_items)):
+		var item = inventory_items[i]
+		var prefix = "> " if i == selected_item_index else "  "
+		inv_text += prefix + item["name"]
+		
+		if item["equipped"]:
+			inv_text += " [EQUIPPED]"
+		
+		inv_text += "\n"
+	
+	inv_text += "\nUse Arrow Keys to select\nPress SPACE to equip"
 	
 	if inventory_tab.has_node("Label"):
 		inventory_tab.get_node("Label").text = inv_text
 
-func _input(event):
-	if menu_open and tab_container.current_tab == 0:  # Inventory tab
-		if event.is_action_pressed("ui_focus_prev"):  # E key
-			if PlayerData.has_dagger and PlayerData.equipped_weapon != "dagger":
-				PlayerData.equip_weapon("dagger")
-				update_inventory()
-		elif event.is_action_pressed("ui_accept") and event.shift:  # Shift+Space for armor
-			if PlayerData.has_armor and PlayerData.equipped_armor != "armor":
-				PlayerData.equip_armor("armor")
-				update_inventory()
+func equip_selected_item():
+	if len(inventory_items) == 0:
+		return
+	
+	var item = inventory_items[selected_item_index]
+	
+	if item["type"] == "weapon" and not item["equipped"]:
+		PlayerData.equip_weapon("dagger")
+		update_inventory()
+	elif item["type"] == "armor" and not item["equipped"]:
+		PlayerData.equip_armor("armor")
+		update_inventory()
 
 func update_character():
 	var char_text = "=== CHARACTER ===\n\n"
