@@ -48,7 +48,17 @@ onready var camera = $Camera
 onready var message_label = $MessageLabel
 onready var priest_panel = $PriestPanel
 
+# Texture preloading
+var texture_mudbrick = null
+var texture_temple = null
+var texture_ground = null
+
 func _ready():
+	# Preload textures
+	texture_mudbrick = load("res://assets/textures/walls/yeriho_mudbrick_wall_512.png")
+	texture_temple = load("res://assets/textures/walls/temple_rust_red_512.png")
+	texture_ground = load("res://assets/textures/ground/ground_sand_24.png")
+	
 	var env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color(0.35, 0.35, 0.4)
@@ -62,15 +72,6 @@ func _ready():
 	light.rotation_degrees = Vector3(-50, 30, 0)
 	light.light_energy = 0.9
 	add_child(light)
-	
-	# TEST: Verify D exists in map
-	print("=== CHECKING FOR D IN MAP ===")
-	var lines = CITY_MAP.split("\n")
-	for row in range(lines.size()):
-		var line = lines[row]
-		for col in range(line.length()):
-			if line[col] == 'D':
-				print("FOUND D at row=", row, " col=", col)
 	
 	generate_city()
 	position_camera_at_spawn()
@@ -109,7 +110,13 @@ func create_wall(pos):
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 3.0, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_WALL
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_mudbrick:
+		mat.albedo_texture = texture_mudbrick
+	else:
+		mat.albedo_color = COLOR_WALL
+	
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 1.5, 0)
 	add_child(mesh)
@@ -126,18 +133,31 @@ func create_floor(pos):
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 0.1, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_GROUND
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_ground:
+		mat.albedo_texture = texture_ground
+		mat.uv1_scale = Vector3(1, 1, 1)  # Adjust tiling if needed
+	else:
+		mat.albedo_color = COLOR_GROUND
+	
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 0.05, 0)
 	add_child(mesh)
 
 func create_temple(pos, col, row):
-	# All temple walls are solid brown with collision
+	# All temple walls are solid with rust red texture
 	var mesh = MeshInstance.new()
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 4.0, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_TEMPLE
+	
+	# Use rust red texture if loaded
+	if texture_temple:
+		mat.albedo_texture = texture_temple
+	else:
+		mat.albedo_color = COLOR_TEMPLE
+	
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 2.0, 0)
 	add_child(mesh)
@@ -150,18 +170,16 @@ func create_temple(pos, col, row):
 	mesh.add_child(body)
 
 func create_temple_door(pos):
-	print("=== CREATING TEMPLE DOOR at ", pos, " ===")
 	# Brown temple wall with NO collision
 	create_floor(pos)
 	var mesh = MeshInstance.new()
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 4.0, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_TEMPLE  # Same brown as temple
+	mat.albedo_color = Color(0.6, 0.45, 0.3)  # Brown door
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 2.0, 0)
 	add_child(mesh)
-	print("=== TEMPLE DOOR CREATED ===")
 	# NO collision body - player walks through and triggers priest
 
 func create_fountain(pos):

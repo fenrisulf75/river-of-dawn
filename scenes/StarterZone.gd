@@ -50,7 +50,8 @@ const COLOR_GROUND = Color(0.75, 0.68, 0.55)  # Sandy tan
 const COLOR_PATH = Color(0.65, 0.58, 0.45)    # Worn path brown
 const COLOR_PLAYER = Color(0.2, 0.6, 0.9)     # Blue
 const COLOR_INTERACT = Color(0.0, 1.0, 1.0)   # Bright cyan
-const COLOR_DOG = Color(1.0, 0.2, 0.2)        # Bright red for dog
+const COLOR_JACKAL = Color(1.0, 0.2, 0.2)     # Bright red for jackal
+const COLOR_FOG = Color(0.0, 0.0, 0.0)        # Black fog of war
 
 # === PLAYER STATE ===
 var player_grid_x = 0
@@ -62,8 +63,13 @@ var has_key = false
 var dog_defeated = false
 var examined_skeleton = false
 var examined_satchel = false
-var dog_triggered = false  # NEW: Track if dog combat has been triggered
+var dog_triggered = false  # Track if jackal combat has been triggered
 var movement_speed = 0.15  # seconds per tile
+
+# === FOG OF WAR ===
+var fog_tiles = {}  # {Vector2(x,y): ColorRect node}
+var explored_tiles = {}  # {Vector2(x,y): true}
+const VISION_RADIUS = 3  # How many tiles player can see
 
 # === INTERACTION STATE ===
 var interactable_objects = {}  # {grid_pos: {type, used, data}}
@@ -79,6 +85,9 @@ var current_message = ""
 var in_combat = false
 
 func _ready():
+	# Set viewport background to black
+	VisualServer.set_default_clear_color(Color(0, 0, 0))
+	
 	# Show HUD for gameplay
 	if has_node("/root/HUD"):
 		get_node("/root/HUD").show()
@@ -88,6 +97,9 @@ func _ready():
 	
 	# Find and set player spawn
 	find_spawn_point()
+	
+	# Create fog of war layer
+	create_fog_of_war()
 	
 	# Center camera on player
 	update_camera()
@@ -99,9 +111,54 @@ func _ready():
 	# Setup combat
 	combat_ui.connect("combat_finished", self, "on_combat_finished")
 	
+	# Initial vision reveal
+	update_fog_of_war()
+	
 	# Show intro message
 	yield(get_tree().create_timer(0.5), "timeout")
-	show_message("Salt burns your lips. Something drove you here...\nand something else drives you onward.\n\nPress SPACE to continue")
+	show_message("You awaken on sun-scorched sand, the Salt Sea stretching before you.\nDesert cliffs behind. Poisonous brine pits ahead.\nNo memory of how you came to be here.\n\nBut something drives you onward...\n\nPress SPACE to continue")
+
+func create_fog_of_war():
+	# Create black fog tiles over entire map
+	var lines = ZONE_MAP.split("\n")
+	for row in range(lines.size()):
+		var line = lines[row]
+		for col in range(line.length()):
+			var pos = Vector2(col, row)
+			var screen_pos = Vector2(col * TILE_SIZE, row * TILE_SIZE)
+			
+			var fog = ColorRect.new()
+			fog.rect_position = screen_pos
+			fog.rect_size = Vector2(TILE_SIZE, TILE_SIZE)
+			fog.color = COLOR_FOG
+			fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			fog.name = "Fog_%d_%d" % [col, row]
+			add_child(fog)
+			
+			fog_tiles[pos] = fog
+
+func update_fog_of_war():
+	# Reveal tiles within vision radius
+	var player_pos = Vector2(player_grid_x, player_grid_y)
+	
+	for y in range(player_grid_y - VISION_RADIUS, player_grid_y + VISION_RADIUS + 1):
+		for x in range(player_grid_x - VISION_RADIUS, player_grid_x + VISION_RADIUS + 1):
+			var tile_pos = Vector2(x, y)
+			
+			# Check if within map bounds
+			if x >= 0 and x < MAP_WIDTH and y >= 0 and y < MAP_HEIGHT:
+				# Check if within vision radius (circular)
+				if player_pos.distance_to(tile_pos) <= VISION_RADIUS:
+					reveal_tile(tile_pos)
+
+func reveal_tile(tile_pos):
+	# Mark as explored
+	explored_tiles[tile_pos] = true
+	
+	# Remove fog
+	if fog_tiles.has(tile_pos):
+		fog_tiles[tile_pos].queue_free()
+		fog_tiles.erase(tile_pos)
 
 func generate_zone():
 	var lines = ZONE_MAP.split("\n")
@@ -114,50 +171,50 @@ func generate_zone():
 			
 			match tile:
 				"#":
-					draw_tile(pos, COLOR_CLIFF)
+					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/ground_cliff_24.png")
 				"X":
-					draw_tile(pos, COLOR_BRINE)
+					draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/ground_brine_24.png")
 				"~":
-					draw_tile(pos, COLOR_SEA)
+					draw_tile(pos, COLOR_SEA, "res://assets/textures/ground/ground_sea_24.png")
 				".":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 				":":
-					draw_tile(pos, COLOR_PATH)
+					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/ground_path_24.png")
 				"P":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					player_grid_x = col
 					player_grid_y = row
 				"G":
-					draw_tile(pos, COLOR_PATH)
+					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/ground_path_24.png")
 					add_interactable(col, row, "cave", {"locked": true})
 					draw_marker(pos, "G", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true  # Always check on step
 				"S":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "shrine", {"visited": false})
 					draw_marker(pos, "S", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
 				"D":
-					draw_tile(pos, COLOR_GROUND)
-					add_interactable(col, row, "dog", {"alive": true})
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
+					add_interactable(col, row, "jackal", {"alive": true})
 					# Don't draw marker yet - will appear after satchel is examined
 				"K":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "satchel", {"examined": false})
 					# Don't draw marker yet - will appear after skeleton
 					# Don't add to required_interactions yet - skeleton reveals it
 				"L":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "loot", {"taken": false})
 					# Don't draw marker yet - will appear after skeleton
 					# Don't add to required_interactions yet - skeleton reveals it
 				"!":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "skeleton", {"examined": false})
 					draw_marker(pos, "!", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
 				"B":
-					draw_tile(pos, COLOR_GROUND)
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "lore_stone", {"read": false})
 					draw_marker(pos, "B", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
@@ -165,7 +222,19 @@ func generate_zone():
 	# Draw player
 	draw_player()
 
-func draw_tile(pos, color):
+func draw_tile(pos, color, texture_path = ""):
+	if texture_path != "":
+		# Use sprite with texture
+		var sprite = Sprite.new()
+		var tex = load(texture_path)
+		if tex:
+			sprite.texture = tex
+			sprite.position = pos + Vector2(TILE_SIZE/2, TILE_SIZE/2)
+			sprite.centered = true
+			add_child(sprite)
+			return
+	
+	# Fallback to colored rectangle
 	var rect = ColorRect.new()
 	rect.rect_position = pos
 	rect.rect_size = Vector2(TILE_SIZE, TILE_SIZE)
@@ -281,6 +350,9 @@ func attempt_move(dx, dy):
 		
 		update_camera()
 		
+		# Update fog of war
+		update_fog_of_war()
+		
 		# Check for hazard proximity
 		check_hazards(target_x, target_y)
 
@@ -332,8 +404,8 @@ func check_triggers():
 				required_interactions.erase(pos)  # No longer required after first trigger
 			return
 	
-	# Check if dog should attack after satchel examination
-	# Dog attacks when player reaches the D marker position
+	# Check if jackal should attack after satchel examination
+	# Jackal attacks when player reaches the D marker position
 	if examined_satchel and not dog_defeated and not dog_triggered:
 		var dog_pos = find_tile_position("D")
 		if dog_pos != Vector2(-1, -1):
@@ -380,7 +452,7 @@ func interact_with(type, data, pos):
 		
 		"skeleton":
 			if not data["examined"]:
-				show_message("A skeleton reaches toward something...\n\nA note clutched in bone fingers reads:\n\n\"Dogs attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
+				show_message("A skeleton reaches toward something...\n\nA note clutched in bone fingers reads:\n\n\"Jackals attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 				data["examined"] = true
 				examined_skeleton = true
 				# Don't remove marker - keep "!" visible
@@ -399,7 +471,7 @@ func interact_with(type, data, pos):
 					required_interactions[loot_pos] = true  # Make L auto-trigger
 			else:
 				# Can re-read the note
-				show_message("The keeper's note:\n\n\"Dogs attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
+				show_message("The keeper's note:\n\n\"Jackals attacked... Took my food satchel...\nIn my ignorance I left the key inside it...\nIf only I could have reached my dagger...\nMay Ba'al forgive my ignorance.\"\n\nPress SPACE to continue")
 		
 		"lore_stone":
 			if not data["read"]:
@@ -417,11 +489,11 @@ func interact_with(type, data, pos):
 				examined_satchel = true
 				remove_marker_at(pos)
 				
-				# Show the dog marker now that player knows about the threat
+				# Show the jackal marker now that player knows about the threat
 				var dog_pos = find_tile_position("D")
 				if dog_pos != Vector2(-1, -1):
 					var dog_screen_pos = Vector2(dog_pos.x * TILE_SIZE, dog_pos.y * TILE_SIZE)
-					draw_marker(dog_screen_pos, "D", COLOR_DOG)
+					draw_marker(dog_screen_pos, "D", COLOR_JACKAL)
 			else:
 				# Can re-examine
 				show_message("The torn satchel with food scraps and puncture marks.\n\nPress SPACE to continue")
@@ -444,8 +516,8 @@ func interact_with(type, data, pos):
 				# Will trigger transition on next accept
 				# Don't remove from required_interactions yet
 		
-		"dog":
-			# Dog is only triggered via check_triggers, not direct interaction
+		"jackal":
+			# Jackal is only triggered via check_triggers, not direct interaction
 			pass
 
 func trigger_dog_encounter():
@@ -460,14 +532,14 @@ func on_combat_finished(player_won):
 		PlayerData.has_key = true
 		dog_defeated = true
 		
-		# Remove dog marker
+		# Remove jackal marker
 		var dog_pos = find_tile_position("D")
 		if dog_pos != Vector2(-1, -1):
 			remove_marker_at(dog_pos)
 			# Also remove from interactables
 			interactable_objects.erase(dog_pos)
 		
-		show_message("You search the dog's body.\n\nTorn belly... bloodstained cloth...\nA key gleams in the remains.\n\nThis must be the keeper's key!\n\nPress SPACE to continue")
+		show_message("The sickly jackal falls.\n\nYour final blow splits its swollen belly—\nsomething gleams within the gore.\n\nA key! The keeper's key!\n\nPress SPACE to continue")
 	else:
 		show_message("You have been defeated...\n\nGame Over\n\nPress SPACE to restart")
 		yield(get_tree().create_timer(1.0), "timeout")
@@ -497,8 +569,8 @@ func update_prompt():
 		var obj = interactable_objects[pos]
 		var data = obj["data"]
 		
-		# Don't show prompt for dog (it's auto-triggered)
-		if obj["type"] == "dog":
+		# Don't show prompt for jackal (it's auto-triggered)
+		if obj["type"] == "jackal":
 			prompt_label.visible = false
 			return
 		

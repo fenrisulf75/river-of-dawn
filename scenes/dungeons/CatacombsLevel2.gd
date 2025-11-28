@@ -40,7 +40,15 @@ var waiting_for_input = false
 onready var camera = $Camera
 onready var message_label = $MessageLabel
 
+# Texture preloading
+var texture_cave_wall = null
+var texture_cave_floor = null
+
 func _ready():
+	# Preload textures
+	texture_cave_wall = load("res://assets/textures/walls/cave_stone_wall_512.png")
+	texture_cave_floor = load("res://assets/textures/ground/ground_cliff_24.png")
+	
 	generate_level()
 	position_camera_at_spawn()
 	PlayerData.in_dungeon = true
@@ -69,7 +77,13 @@ func create_wall(pos):
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 3.0, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_WALL
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_cave_wall:
+		mat.albedo_texture = texture_cave_wall
+	else:
+		mat.albedo_color = COLOR_WALL
+	
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 1.5, 0)
 	add_child(mesh)
@@ -96,7 +110,14 @@ func create_floor(pos):
 	mesh.mesh = CubeMesh.new()
 	mesh.mesh.size = Vector3(1.0, 0.1, 1.0)
 	var mat = SpatialMaterial.new()
-	mat.albedo_color = COLOR_FLOOR
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_cave_floor:
+		mat.albedo_texture = texture_cave_floor
+		mat.uv1_scale = Vector3(1, 1, 1)
+	else:
+		mat.albedo_color = COLOR_FLOOR
+	
 	mesh.set_surface_material(0, mat)
 	mesh.translation = pos + Vector3(0, 0.05, 0)
 	add_child(mesh)

@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-# Simple combat UI for the dog encounter
+# Simple combat UI for the sickly jackal encounter
 
 signal combat_finished(player_won)
 
@@ -8,8 +8,7 @@ var player_hp = 20
 var player_max_hp = 20
 var enemy_hp = 10  # Reduced from 15
 var enemy_max_hp = 10
-var enemy_name = "Dog"
-
+var enemy_name = "Sickly Jackal"
 var player_damage_range = [3, 6]  # With dagger
 var enemy_damage_range = [1, 3]  # Reduced from [2, 5]
 
@@ -43,7 +42,7 @@ func start_combat(player_has_weapon):
 		player_damage_range = [3, 6]
 	
 	update_display()
-	show_action("A dog attacks!")
+	show_action("A sickly jackal attacks!")
 	yield(get_tree().create_timer(1.5), "timeout")
 	player_turn()
 
@@ -130,9 +129,9 @@ func end_combat(player_won):
 	waiting_for_player = false
 	
 	if player_won:
-		show_action("Victory! The dog falls.")
+		show_action("Victory! The jackal falls.")
 		yield(get_tree().create_timer(2.0), "timeout")
-		show_action("The belly tears open... something falls out.\n\nYou find a key!")
+		show_action("Your blade split its swollen belly—\nsomething metal gleams within.\n\nThe keeper's key!")
 		yield(get_tree().create_timer(3.0), "timeout")
 	else:
 		show_action("You have been defeated...")

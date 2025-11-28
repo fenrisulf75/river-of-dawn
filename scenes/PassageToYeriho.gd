@@ -23,7 +23,12 @@ const PASSAGE_MAP = """
 onready var camera = $Camera
 onready var message_label = $Label
 
-# Cave materials/meshes (we'll create these inline)
+# Texture preloading
+var texture_cave_wall = null
+var texture_cave_floor = null
+var texture_water = null
+
+# Cave materials/meshes (fallback colors)
 var wall_color = Color(0.29, 0.29, 0.29)  # Dark grey stone
 var floor_color = Color(0.35, 0.35, 0.35)  # Slightly lighter
 var water_color = Color(0.17, 0.31, 0.44)  # Dark blue
@@ -38,6 +43,10 @@ var first_move = true
 var shown_point1_message = false
 
 func _ready():
+	# Preload textures
+	texture_cave_wall = load("res://assets/textures/walls/cave_stone_wall_512.png")
+	texture_cave_floor = load("res://assets/textures/ground/ground_cliff_24.png")
+	
 	generate_passage()
 
 func generate_passage():
@@ -79,7 +88,13 @@ func spawn_wall(position):
 	wall.mesh = mesh
 	
 	var material = SpatialMaterial.new()
-	material.albedo_color = wall_color
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_cave_wall:
+		material.albedo_texture = texture_cave_wall
+	else:
+		material.albedo_color = wall_color
+	
 	wall.set_surface_material(0, material)
 	
 	add_child(wall)
@@ -101,7 +116,14 @@ func spawn_floor(position):
 	floor_tile.mesh = mesh
 	
 	var material = SpatialMaterial.new()
-	material.albedo_color = floor_color
+	
+	# Use texture if loaded, otherwise fallback to color
+	if texture_cave_floor:
+		material.albedo_texture = texture_cave_floor
+		material.uv1_scale = Vector3(1, 1, 1)
+	else:
+		material.albedo_color = floor_color
+	
 	floor_tile.set_surface_material(0, material)
 	
 	add_child(floor_tile)
@@ -115,6 +137,7 @@ func spawn_water(position):
 	
 	var material = SpatialMaterial.new()
 	material.albedo_color = water_color
+	
 	water.set_surface_material(0, material)
 	
 	add_child(water)
@@ -136,7 +159,13 @@ func spawn_ceiling(position):
 	ceiling.mesh = mesh
 	
 	var material = SpatialMaterial.new()
-	material.albedo_color = wall_color  # Same color as walls
+	
+	# Use same texture as walls for ceiling
+	if texture_cave_wall:
+		material.albedo_texture = texture_cave_wall
+	else:
+		material.albedo_color = wall_color
+	
 	ceiling.set_surface_material(0, material)
 	
 	add_child(ceiling)
