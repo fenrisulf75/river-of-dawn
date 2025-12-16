@@ -83,7 +83,7 @@ func update_inventory():
 	else:
 		selected_item_index = 0
 		inv_text += "(No items yet)\n\n"
-		inv_text += "Use Arrow Keys to select\nPress SPACE to equip"
+		inv_text += "Use Arrow Keys to select\nPress SPACE to Equip or Unequip"
 		if inventory_tab.has_node("Label"):
 			inventory_tab.get_node("Label").text = inv_text
 		return
@@ -99,7 +99,7 @@ func update_inventory():
 		
 		inv_text += "\n"
 	
-	inv_text += "\nUse Arrow Keys to select\nPress SPACE to equip"
+	inv_text += "\nUse Arrow Keys to select\nPress SPACE to Equip or Unequip"
 	
 	if inventory_tab.has_node("Label"):
 		inventory_tab.get_node("Label").text = inv_text
@@ -110,11 +110,17 @@ func equip_selected_item():
 	
 	var item = inventory_items[selected_item_index]
 	
-	if item["type"] == "weapon" and not item["equipped"]:
-		PlayerData.equip_weapon("dagger")
+	if item["type"] == "weapon":
+		if item["equipped"]:
+			PlayerData.unequip_weapon()
+		else:
+			PlayerData.equip_weapon("dagger")
 		update_inventory()
-	elif item["type"] == "armor" and not item["equipped"]:
-		PlayerData.equip_armor("armor")
+	elif item["type"] == "armor":
+		if item["equipped"]:
+			PlayerData.unequip_armor()
+		else:
+			PlayerData.equip_armor("armor")
 		update_inventory()
 
 func update_character():
@@ -134,7 +140,7 @@ func update_character():
 		char_text += "Will (WIL): %d\n" % PlayerData.will
 		char_text += "Luck (LUK): %d\n" % PlayerData.luck
 	else:
-		char_text += "\n[Attributes locked until awakening]"
+		char_text += "\n[Attributes are not yet unlocked]"
 	
 	if character_tab.has_node("Label"):
 		character_tab.get_node("Label").text = char_text

@@ -68,10 +68,20 @@ func equip_weapon(weapon_name):
 	# Dagger: +2 attack damage (applied in combat)
 	print("Equipped: " + weapon_name + " (+2 attack damage)")
 
+func unequip_weapon():
+	if equipped_weapon != "":
+		print("Unequipped: " + equipped_weapon)
+		equipped_weapon = ""
+
 func equip_armor(armor_name):
 	equipped_armor = armor_name
 	# Armor: -1 damage taken, minimum 1 (applied in combat)
 	print("Equipped: " + armor_name + " (-1 damage taken)")
+
+func unequip_armor():
+	if equipped_armor != "":
+		print("Unequipped: " + equipped_armor)
+		equipped_armor = ""
 
 func awaken():
 	# Called after Temple ritual
