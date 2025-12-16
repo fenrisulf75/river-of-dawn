@@ -53,6 +53,12 @@ const COLOR_INTERACT = Color(0.0, 1.0, 1.0)   # Bright cyan
 const COLOR_JACKAL = Color(1.0, 0.2, 0.2)     # Bright red for jackal
 const COLOR_FOG = Color(0.0, 0.0, 0.0)        # Black fog of war
 
+# === BRINE ANIMATION ===
+var brine_tiles = []  # Array of {sprite: Sprite, frame: int}
+const BRINE_FRAME_COUNT = 4
+const BRINE_FRAME_DURATION = 0.13  # seconds per frame
+var brine_timer = 0.0
+
 # === PLAYER STATE ===
 var player_grid_x = 0
 var player_grid_y = 0
@@ -69,7 +75,28 @@ var movement_speed = 0.15  # seconds per tile
 # === FOG OF WAR ===
 var fog_tiles = {}  # {Vector2(x,y): ColorRect node}
 var explored_tiles = {}  # {Vector2(x,y): true}
-const VISION_RADIUS = 3  # How many tiles player can see
+
+# Vision system
+const BASE_VISION_RADIUS = 3  # Default vision
+const WATER_VISION_BONUS = 1  # Standing on/near water
+const BRINE_VISION_PENALTY = -1  # Near brine pits
+const CLIFF_VISIBLE_DISTANCE = 5  # Cliffs visible from farther away
+
+# === THE 8 CARDINAL AND DIAGONAL DIRECTIONS ===
+const DIRECTIONS = {
+	"N": Vector2(0, -1),
+	"NE": Vector2(1, -1),
+	"E": Vector2(1, 0),
+	"SE": Vector2(1, 1),
+	"S": Vector2(0, 1),
+	"SW": Vector2(-1, 1),
+	"W": Vector2(-1, 0),
+	"NW": Vector2(-1, -1)
+}
+
+# Fog colors
+const COLOR_FOG_UNEXPLORED = Color(0.0, 0.0, 0.0, 1.0)  # Black, fully opaque
+const COLOR_FOG_EXPLORED = Color(0.0, 0.0, 0.0, 0.5)  # Black, semi-transparent
 
 # === INTERACTION STATE ===
 var interactable_objects = {}  # {grid_pos: {type, used, data}}
@@ -130,7 +157,7 @@ func create_fog_of_war():
 			var fog = ColorRect.new()
 			fog.rect_position = screen_pos
 			fog.rect_size = Vector2(TILE_SIZE, TILE_SIZE)
-			fog.color = COLOR_FOG
+			fog.color = COLOR_FOG_UNEXPLORED  # Use constant
 			fog.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			fog.name = "Fog_%d_%d" % [col, row]
 			add_child(fog)
@@ -138,27 +165,122 @@ func create_fog_of_war():
 			fog_tiles[pos] = fog
 
 func update_fog_of_war():
-	# Reveal tiles within vision radius
 	var player_pos = Vector2(player_grid_x, player_grid_y)
 	
-	for y in range(player_grid_y - VISION_RADIUS, player_grid_y + VISION_RADIUS + 1):
-		for x in range(player_grid_x - VISION_RADIUS, player_grid_x + VISION_RADIUS + 1):
+	# Calculate vision distance for each of the 8 directions
+	var vision_per_direction = calculate_directional_vision(player_pos)
+	
+	# Now reveal tiles in a modified circle
+	# Check all tiles in a large radius, then determine if each should be visible
+	var max_possible_vision = BASE_VISION_RADIUS + abs(WATER_VISION_BONUS) + 2  # Maximum any direction could see
+	
+	for y in range(player_grid_y - max_possible_vision, player_grid_y + max_possible_vision + 1):
+		for x in range(player_grid_x - max_possible_vision, player_grid_x + max_possible_vision + 1):
 			var tile_pos = Vector2(x, y)
 			
-			# Check if within map bounds
-			if x >= 0 and x < MAP_WIDTH and y >= 0 and y < MAP_HEIGHT:
-				# Check if within vision radius (circular)
-				if player_pos.distance_to(tile_pos) <= VISION_RADIUS:
+			# Skip if out of bounds
+			if x < 0 or x >= MAP_WIDTH or y < 0 or y >= MAP_HEIGHT:
+				continue
+			
+			# Calculate distance
+			var distance = player_pos.distance_to(tile_pos)
+			
+			# ALWAYS reveal immediately adjacent tiles (including diagonals)
+			if distance <= 1.5:
+				reveal_tile(tile_pos)
+				continue
+			
+			# Determine which direction this tile is in
+			var tile_direction = get_primary_direction(player_pos, tile_pos)
+			if tile_direction == "":
+				# This is the player's own tile
+				reveal_tile(tile_pos)
+				continue
+			
+			# Get the vision limit for this direction
+			var vision_limit = vision_per_direction[tile_direction]
+			
+			# Check if tile is within vision distance
+			if distance <= vision_limit:
+				# Check line of sight (cliffs blocking)
+				if has_line_of_sight_directional(player_pos, tile_pos, DIRECTIONS[tile_direction]):
 					reveal_tile(tile_pos)
 
 func reveal_tile(tile_pos):
 	# Mark as explored
 	explored_tiles[tile_pos] = true
 	
-	# Remove fog
+	# Check if currently visible or just explored
 	if fog_tiles.has(tile_pos):
-		fog_tiles[tile_pos].queue_free()
-		fog_tiles.erase(tile_pos)
+		if is_currently_visible(tile_pos):
+			# Fully visible - remove fog completely
+			fog_tiles[tile_pos].color = Color(0, 0, 0, 0)  # Fully transparent
+		else:
+			# Previously explored but not currently visible - dim
+			fog_tiles[tile_pos].color = COLOR_FOG_EXPLORED
+
+func refresh_fog_visibility():
+	# Update all fog tiles based on current visibility
+	for tile_pos in explored_tiles.keys():
+		if fog_tiles.has(tile_pos):
+			if is_currently_visible(tile_pos):
+				fog_tiles[tile_pos].color = Color(0, 0, 0, 0)  # Bright
+			else:
+				fog_tiles[tile_pos].color = COLOR_FOG_EXPLORED  # Dim
+
+func is_currently_visible(tile_pos):
+	var player_pos = Vector2(player_grid_x, player_grid_y)
+	
+	# Calculate directional vision
+	var vision_per_direction = calculate_directional_vision(player_pos)
+	
+	# Determine which direction the tile is in
+	var tile_direction = get_primary_direction(player_pos, tile_pos)
+	
+	if tile_direction == "":
+		return true  # Player's own tile
+	
+	# Get vision limit for this direction
+	var vision_limit = vision_per_direction[tile_direction]
+	
+	# Check distance
+	var distance = player_pos.distance_to(tile_pos)
+	if distance > vision_limit:
+		return false
+	
+	# Check line of sight
+	return has_line_of_sight_directional(player_pos, tile_pos, DIRECTIONS[tile_direction])
+
+func has_line_of_sight_directional(from_pos, to_pos, primary_direction):
+	# Check if there's a cliff blocking the line of sight
+	var direction = (to_pos - from_pos).normalized()
+	var distance = from_pos.distance_to(to_pos)
+	var lines = ZONE_MAP.split("\n")
+	
+	# If the target tile itself is a cliff and it's adjacent (distance <= 1.5), always show it
+	var x_target = int(to_pos.x)
+	var y_target = int(to_pos.y)
+	if y_target >= 0 and y_target < lines.size():
+		var line_target = lines[y_target]
+		if x_target >= 0 and x_target < line_target.length():
+			if line_target[x_target] == "#" and distance <= 1.5:
+				return true  # Always show adjacent cliffs
+	
+	# Step along the line from player to target
+	var steps = int(distance * 2)  # Check every half-tile
+	for i in range(1, steps):
+		var check_pos = from_pos + (direction * (i * 0.5))
+		var x = int(check_pos.x)
+		var y = int(check_pos.y)
+		
+		if y >= 0 and y < lines.size():
+			var line = lines[y]
+			if x >= 0 and x < line.length():
+				if line[x] == "#":
+					# There's a cliff in the way (but not the target cliff)
+					return false
+	
+	return true
 
 func generate_zone():
 	var lines = ZONE_MAP.split("\n")
@@ -173,7 +295,10 @@ func generate_zone():
 				"#":
 					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/ground_cliff_24.png")
 				"X":
-					draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/ground_brine_24.png")
+					var random_frame = randi() % BRINE_FRAME_COUNT
+					var brine_sprite = draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/ground_brine_24_frame%d.png" % random_frame)
+					if brine_sprite:
+						brine_tiles.append({"sprite": brine_sprite, "frame": random_frame})
 				"~":
 					draw_tile(pos, COLOR_SEA, "res://assets/textures/ground/ground_sea_24.png")
 				".":
@@ -190,9 +315,9 @@ func generate_zone():
 					draw_marker(pos, "G", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true  # Always check on step
 				"S":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/tile_baal_symbol.png")
 					add_interactable(col, row, "shrine", {"visited": false})
-					draw_marker(pos, "S", COLOR_INTERACT)
+					# Don't draw "S" marker - the symbol tile is the marker
 					required_interactions[Vector2(col, row)] = true
 				"D":
 					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
@@ -222,6 +347,19 @@ func generate_zone():
 	# Draw player
 	draw_player()
 
+func update_brine_animation(delta):
+	brine_timer += delta
+	
+	if brine_timer >= BRINE_FRAME_DURATION:
+		brine_timer = 0.0
+		
+		# Update all brine tiles to next frame
+		for brine_data in brine_tiles:
+			brine_data["frame"] = (brine_data["frame"] + 1) % BRINE_FRAME_COUNT
+			var new_frame = brine_data["frame"]
+			var texture_path = "res://assets/textures/ground/ground_brine_24_frame%d.png" % new_frame
+			brine_data["sprite"].texture = load(texture_path)
+
 func draw_tile(pos, color, texture_path = ""):
 	if texture_path != "":
 		# Use sprite with texture
@@ -232,7 +370,7 @@ func draw_tile(pos, color, texture_path = ""):
 			sprite.position = pos + Vector2(TILE_SIZE/2, TILE_SIZE/2)
 			sprite.centered = true
 			add_child(sprite)
-			return
+			return sprite  # Return the sprite so we can track it
 	
 	# Fallback to colored rectangle
 	var rect = ColorRect.new()
@@ -241,6 +379,7 @@ func draw_tile(pos, color, texture_path = ""):
 	rect.color = color
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rect)
+	return null  # No sprite to return
 
 func draw_marker(pos, text, color):
 	var label = Label.new()
@@ -283,9 +422,14 @@ func find_spawn_point():
 				player_grid_y = row
 				return
 
-func _process(_delta):
+func _process(delta):
+	# Update brine pit animation
+	update_brine_animation(delta)
+	
 	if in_combat:
 		return
+	
+	# ... rest of your existing _process code
 	
 	# Block all input if menu is open
 	if MenuSystem.menu_open:
@@ -368,8 +512,11 @@ func is_walkable(x, y):
 
 func finish_move():
 	is_moving = false
+	
+	# Refresh fog to update what's currently visible vs explored
+	refresh_fog_visibility()
+	
 	check_triggers()
-	# Only update prompt if not waiting for input (no message showing)
 	if not waiting_for_input:
 		update_prompt()
 
@@ -637,3 +784,88 @@ func check_cave_entry():
 			show_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse")
 			yield(get_tree().create_timer(2.0), "timeout")
 			get_tree().change_scene("res://scenes/PassageToYeriho.tscn")
+			
+func calculate_directional_vision(player_pos):
+	var vision = {}
+	var lines = ZONE_MAP.split("\n")
+	
+	# Start with base vision in all directions
+	for dir_name in DIRECTIONS.keys():
+		vision[dir_name] = BASE_VISION_RADIUS
+	
+	# Check each direction for terrain modifiers
+	for dir_name in DIRECTIONS.keys():
+		var direction = DIRECTIONS[dir_name]
+		var check_pos = player_pos + direction
+		var x = int(check_pos.x)
+		var y = int(check_pos.y)
+		
+		# Bounds check
+		if y >= 0 and y < lines.size():
+			var line = lines[y]
+			if x >= 0 and x < line.length():
+				var terrain = line[x]
+				
+				if terrain == "~":  # Water extends vision
+					vision[dir_name] += WATER_VISION_BONUS
+				elif terrain == "X":  # Brine reduces vision
+					vision[dir_name] += BRINE_VISION_PENALTY
+				elif terrain == "#":  # Cliff - can only see the cliff itself
+					vision[dir_name] = 1
+	
+	# Ensure minimum vision of 1 in all directions
+	for dir_name in DIRECTIONS.keys():
+		vision[dir_name] = max(1, vision[dir_name])
+	
+	return vision
+
+func get_primary_direction(from_pos, to_pos):
+	# Returns which of the 8 directions this tile is primarily in
+	var delta = to_pos - from_pos
+	
+	if delta.length() < 0.1:
+		return ""  # Same tile
+	
+	# Determine the primary direction based on angle
+	var angle = delta.angle()
+	
+	# Convert angle to degrees and normalize to 0-360
+	var degrees = rad2deg(angle)
+	if degrees < 0:
+		degrees += 360
+	
+	# Map angle ranges to directions
+	if degrees >= 337.5 or degrees < 22.5:
+		return "E"
+	elif degrees >= 22.5 and degrees < 67.5:
+		return "SE"
+	elif degrees >= 67.5 and degrees < 112.5:
+		return "S"
+	elif degrees >= 112.5 and degrees < 157.5:
+		return "SW"
+	elif degrees >= 157.5 and degrees < 202.5:
+		return "W"
+	elif degrees >= 202.5 and degrees < 247.5:
+		return "NW"
+	elif degrees >= 247.5 and degrees < 292.5:
+		return "N"
+	elif degrees >= 292.5 and degrees < 337.5:
+		return "NE"
+	
+	return "E"  # Fallback
+
+func get_terrain_at(pos):
+	var lines = ZONE_MAP.split("\n")
+	var x = int(pos.x)
+	var y = int(pos.y)
+	
+	if y >= 0 and y < lines.size():
+		var line = lines[y]
+		if x >= 0 and x < line.length():
+			return line[x]
+	return ""
+
+func is_position_valid(pos):
+	var x = int(pos.x)
+	var y = int(pos.y)
+	return x >= 0 and x < MAP_WIDTH and y >= 0 and y < MAP_HEIGHT
