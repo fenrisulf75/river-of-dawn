@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_path_curve_NW.png-96dc5b51646e6b093883c9115ffc467e.stex"
+path="res://.import/tile_baal_symbol.png-0bf13dc8ef10f28f491d6892679b3356.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/ground_path_curve_NW.png"
-dest_files=[ "res://.import/ground_path_curve_NW.png-96dc5b51646e6b093883c9115ffc467e.stex" ]
+source_file="res://assets/textures/ground/special/tile_baal_symbol.png"
+dest_files=[ "res://.import/tile_baal_symbol.png-0bf13dc8ef10f28f491d6892679b3356.stex" ]
 
 [params]
 

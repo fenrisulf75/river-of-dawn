@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_path_corner_NE.png-2c85664b9aa577de2871643c6c2d90b8.stex"
+path="res://.import/ground_path_curve_SW.png-b289dbcedd3c890440ada894e6bf3e6a.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/ground_path_corner_NE.png"
-dest_files=[ "res://.import/ground_path_corner_NE.png-2c85664b9aa577de2871643c6c2d90b8.stex" ]
+source_file="res://assets/textures/ground/paths/ground_path_curve_SW.png"
+dest_files=[ "res://.import/ground_path_curve_SW.png-b289dbcedd3c890440ada894e6bf3e6a.stex" ]
 
 [params]
 

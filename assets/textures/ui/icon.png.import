@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/tile_baal_symbol.png-9ef9e39166f44e006eb8fcb30e38dd70.stex"
+path="res://.import/icon.png-279b963887549fa8a33ef0e14bd0ada3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/tile_baal_symbol.png"
-dest_files=[ "res://.import/tile_baal_symbol.png-9ef9e39166f44e006eb8fcb30e38dd70.stex" ]
+source_file="res://assets/textures/ui/icon.png"
+dest_files=[ "res://.import/icon.png-279b963887549fa8a33ef0e14bd0ada3.stex" ]
 
 [params]
 

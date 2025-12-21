@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_cliff_24.png-b942c7795f1a9286922c672ae4b50812.stex"
+path="res://.import/ground_brine_24_frame1.png-befaeb533aa8625949fa468fd624cbe2.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/ground_cliff_24.png"
-dest_files=[ "res://.import/ground_cliff_24.png-b942c7795f1a9286922c672ae4b50812.stex" ]
+source_file="res://assets/textures/ground/animated/ground_brine_24_frame1.png"
+dest_files=[ "res://.import/ground_brine_24_frame1.png-befaeb533aa8625949fa468fd624cbe2.stex" ]
 
 [params]
 

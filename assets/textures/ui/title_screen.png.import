@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_brine_24_frame2.png-b7b3ad6942fce6a28280d5de31a1fc1f.stex"
+path="res://.import/title_screen.png-5ff7e7f8dfbf9ceb4b1849125f0806ee.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/ground_brine_24_frame2.png"
-dest_files=[ "res://.import/ground_brine_24_frame2.png-b7b3ad6942fce6a28280d5de31a1fc1f.stex" ]
+source_file="res://assets/textures/ui/title_screen.png"
+dest_files=[ "res://.import/title_screen.png-5ff7e7f8dfbf9ceb4b1849125f0806ee.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_brine_24_frame3.png-4c19af1651b3c60d0e0da691d40507e3.stex"
+path="res://.import/ground_path_corner_NW.png-d96ebf859bf6613049ffb74d512c95d5.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/ground/ground_brine_24_frame3.png"
-dest_files=[ "res://.import/ground_brine_24_frame3.png-4c19af1651b3c60d0e0da691d40507e3.stex" ]
+source_file="res://assets/textures/ground/paths/ground_path_corner_NW.png"
+dest_files=[ "res://.import/ground_path_corner_NW.png-d96ebf859bf6613049ffb74d512c95d5.stex" ]
 
 [params]
 
