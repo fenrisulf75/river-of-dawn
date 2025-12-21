@@ -11,14 +11,14 @@ config_version=4
 [application]
 
 config/name="River of Dawn"
-run/main_scene="res://scenes/TitleScreen.tscn"
+run/main_scene="res://scenes/ui/TitleScreen.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-PlayerData="*res://PlayerData.gd"
-Hud="*res://scenes/HUD.tscn"
-MenuSystem="*res://scenes/MenuSystem.tscn"
+PlayerData="*res://scripts/PlayerData.gd"
+Hud="*res://scenes/ui/HUD.tscn"
+MenuSystem="*res://scenes/ui/MenuSystem.tscn"
 
 [gui]
 
