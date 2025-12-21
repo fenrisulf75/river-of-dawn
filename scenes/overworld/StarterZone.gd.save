@@ -84,7 +84,7 @@ const CLIFF_VISIBLE_DISTANCE = 5  # Cliffs visible from farther away
 
 # === THE 8 CARDINAL AND DIAGONAL DIRECTIONS ===
 const DIRECTIONS = {
-	"N": Vector2(0, -1),
+nano scenes/overworld/StarterZone.gd	"N": Vector2(0, -1),
 	"NE": Vector2(1, -1),
 	"E": Vector2(1, 0),
 	"SE": Vector2(1, 1),
@@ -296,50 +296,50 @@ func generate_zone():
 					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/ground_cliff_24.png")
 				"X":
 					var random_frame = randi() % BRINE_FRAME_COUNT
-					var brine_sprite = draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/animated/ground_brine_24_frame%d.png" % random_frame)
+					var brine_sprite = draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/ground_brine_24_frame%d.png" % random_frame)
 					if brine_sprite:
 						brine_tiles.append({"sprite": brine_sprite, "frame": random_frame})
 				"~":
-					draw_tile(pos, COLOR_SEA, "res://assets/textures/ground/terrain/ground_sea_24.png")
+					draw_tile(pos, COLOR_SEA, "res://assets/textures/ground/ground_sea_24.png")
 				".":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 				":":
-					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/paths/ground_path_24.png")
+					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/ground_path_24.png")
 				"P":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					player_grid_x = col
 					player_grid_y = row
 				"G":
-					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/paths/ground_path_24.png")
+					draw_tile(pos, COLOR_PATH, "res://assets/textures/ground/ground_path_24.png")
 					add_interactable(col, row, "cave", {"locked": true})
 					draw_marker(pos, "G", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true  # Always check on step
 				"S":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/special/tile_baal_symbol.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/tile_baal_symbol.png")
 					add_interactable(col, row, "shrine", {"visited": false})
 					# Don't draw "S" marker - the symbol tile is the marker
 					required_interactions[Vector2(col, row)] = true
 				"D":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "jackal", {"alive": true})
 					# Don't draw marker yet - will appear after satchel is examined
 				"K":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "satchel", {"examined": false})
 					# Don't draw marker yet - will appear after skeleton
 					# Don't add to required_interactions yet - skeleton reveals it
 				"L":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "loot", {"taken": false})
 					# Don't draw marker yet - will appear after skeleton
 					# Don't add to required_interactions yet - skeleton reveals it
 				"!":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "skeleton", {"examined": false})
 					draw_marker(pos, "!", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
 				"B":
-					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/terrain/ground_cliff_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/ground_sand_24.png")
 					add_interactable(col, row, "lore_stone", {"read": false})
 					draw_marker(pos, "B", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
@@ -357,7 +357,7 @@ func update_brine_animation(delta):
 		for brine_data in brine_tiles:
 			brine_data["frame"] = (brine_data["frame"] + 1) % BRINE_FRAME_COUNT
 			var new_frame = brine_data["frame"]
-			var texture_path = "res://assets/textures/ground/animated/ground_brine_24_frame%d.png" % new_frame
+			var texture_path = "res://assets/textures/ground/ground_brine_24_frame%d.png" % new_frame
 			brine_data["sprite"].texture = load(texture_path)
 
 func draw_tile(pos, color, texture_path = ""):
@@ -783,7 +783,7 @@ func check_cave_entry():
 			# Transition to PassageToYeriho
 			show_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse")
 			yield(get_tree().create_timer(2.0), "timeout")
-			get_tree().change_scene("res://scenes/dungeons/PassageToYeriho.tscn")
+			get_tree().change_scene("res://scenes/PassageToYeriho.tscn")
 			
 func calculate_directional_vision(player_pos):
 	var vision = {}

@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://scenes/StarterZone.gd" type="Script" id=1]
+[ext_resource path="res://scenes/overworld/StarterZone.gd" type="Script" id=1]
 [ext_resource path="res://scenes/CombatUI.tscn" type="PackedScene" id=2]
 [ext_resource path="res://assets/fonts/Inter_28pt-Bold.ttf" type="DynamicFontData" id=3]
 
