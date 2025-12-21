@@ -18,4 +18,4 @@ func start_game():
 	if has_node("/root/HUD"):
 		get_node("/root/HUD").show()
 	
-	get_tree().change_scene("res://scenes/StarterZone.tscn")
+	get_tree().change_scene("res://scenes/overworld/StarterZone.tscn")
