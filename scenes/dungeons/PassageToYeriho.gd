@@ -45,7 +45,7 @@ var shown_point1_message = false
 func _ready():
 	# Preload textures
 	texture_cave_wall = load("res://assets/textures/walls/cave_stone_wall_512.png")
-	texture_cave_floor = load("res://assets/textures/ground/ground_cliff_24.png")
+	texture_cave_floor = load("res://assets/textures/ground/terrain/ground_cliff_24.png")
 	
 	generate_passage()
 

@@ -293,7 +293,7 @@ func generate_zone():
 			
 			match tile:
 				"#":
-					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/ground_cliff_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
 				"X":
 					var random_frame = randi() % BRINE_FRAME_COUNT
 					var brine_sprite = draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/animated/ground_brine_24_frame%d.png" % random_frame)
@@ -339,7 +339,7 @@ func generate_zone():
 					draw_marker(pos, "!", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
 				"B":
-					draw_tile(pos, COLOR_CLIFF, "res://assets/textures/ground/terrain/ground_cliff_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
 					add_interactable(col, row, "lore_stone", {"read": false})
 					draw_marker(pos, "B", COLOR_INTERACT)
 					required_interactions[Vector2(col, row)] = true
