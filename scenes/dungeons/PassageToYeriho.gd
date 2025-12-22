@@ -325,7 +325,7 @@ func trigger_exit():
 	
 	# Transition after 2 seconds
 	yield(get_tree().create_timer(2.0), "timeout")
-	get_tree().change_scene("res://scenes/Yeriho.tscn")
+	get_tree().change_scene("res://scenes/cities/Yeriho.tscn")
 	
 func show_entrance_message():
 	message_label.text = "The passage collapses behind you.\nThere's no turning back now.\n\nPress SPACE to continue"
