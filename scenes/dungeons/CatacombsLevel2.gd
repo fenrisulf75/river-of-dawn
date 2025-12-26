@@ -45,6 +45,9 @@ var texture_cave_wall = null
 var texture_cave_floor = null
 
 func _ready():
+print("==========================================")
+print("CATACOMBS LEVEL 2 LOADED")
+print("==========================================")
 	# Preload textures
 	texture_cave_wall = load("res://assets/textures/walls/cave_stone_wall_512.png")
 	texture_cave_floor = load("res://assets/textures/ground/ground_cliff_24.png")

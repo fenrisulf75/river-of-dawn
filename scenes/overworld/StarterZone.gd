@@ -293,7 +293,7 @@ func generate_zone():
 			
 			match tile:
 				"#":
-					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_sand_24.png")
+					draw_tile(pos, COLOR_GROUND, "res://assets/textures/ground/terrain/ground_cliff_24.png")
 				"X":
 					var random_frame = randi() % BRINE_FRAME_COUNT
 					var brine_sprite = draw_tile(pos, COLOR_BRINE, "res://assets/textures/ground/animated/ground_brine_24_frame%d.png" % random_frame)
@@ -455,21 +455,10 @@ func _process(delta):
 		check_interaction()
 		return
 	
-	# Movement
-	var dx = 0
-	var dy = 0
-	
-	if Input.is_action_just_pressed("ui_up"):
-		dy = -1
-	elif Input.is_action_just_pressed("ui_down"):
-		dy = 1
-	elif Input.is_action_just_pressed("ui_left"):
-		dx = -1
-	elif Input.is_action_just_pressed("ui_right"):
-		dx = 1
-	
-	if dx != 0 or dy != 0:
-		attempt_move(dx, dy)
+	# Movement - using MovementSystem2D
+	var move_direction = MovementSystem2D.process_movement_input(delta, is_moving)
+	if move_direction != Vector2.ZERO:
+		attempt_move(int(move_direction.x), int(move_direction.y))
 
 func attempt_move(dx, dy):
 	var target_x = player_grid_x + dx
@@ -780,9 +769,9 @@ func check_cave_entry():
 	# Check if player is at cave
 	if pos == cave_pos:
 		if PlayerData.has_key:
-			# Transition to PassageToYeriho
-			show_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse")
+			show_quick_message("Wind rushes through the cave...\n\nTransitioning to Cave of Collapse", 2.0)
 			yield(get_tree().create_timer(2.0), "timeout")
+			# Transition to PassageToYeriho
 			get_tree().change_scene("res://scenes/dungeons/PassageToYeriho.tscn")
 			
 func calculate_directional_vision(player_pos):

@@ -57,7 +57,7 @@ func _ready():
 	# Preload textures
 	texture_mudbrick = load("res://assets/textures/walls/yeriho_mudbrick_wall_512.png")
 	texture_temple = load("res://assets/textures/walls/temple_rust_red_512.png")
-	texture_ground = load("res://assets/textures/ground/ground_sand_24.png")
+	texture_ground = load("res://assets/textures/ground/terrain/ground_sand_24.png")
 	
 	var env = Environment.new()
 	env.background_mode = Environment.BG_COLOR
@@ -239,10 +239,11 @@ func _process(_delta):
 	
 	if in_priest_menu:
 		if Input.is_action_just_pressed("ui_accept"):
-			# Enter catacombs
-			in_priest_menu = false
-			priest_panel.visible = false
-			get_tree().change_scene("res://scenes/dungeons/CatacombsLevel1.tscn")
+				# Enter catacombs
+				in_priest_menu = false
+				priest_panel.visible = false
+				print("Yeriho: Attempting to load CatacombsLevel1.tscn")
+				get_tree().change_scene("res://scenes/dungeons/CatacombsLevel1.tscn")
 		elif Input.is_action_just_pressed("ui_cancel"):
 			# Exit temple
 			in_priest_menu = false
