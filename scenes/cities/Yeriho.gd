@@ -233,7 +233,7 @@ func position_camera_at_spawn():
 	camera.translation = Vector3(24 - 16, 1.6, 12 - 12)
 	camera.rotation_degrees.y = 180
 
-func _process(_delta):
+func _process(delta):
 	if MenuSystem.menu_open:
 		return
 	
@@ -256,17 +256,16 @@ func _process(_delta):
 			message_label.visible = false
 		return
 	
-	if is_moving or is_rotating:
-		return
+	# Process held-input movement (forward/backward)
+	var move_direction = MovementSystem3D.process_movement_input(delta, is_moving)
+	if move_direction != 0:
+		move_camera(move_direction)
 	
-	if Input.is_action_just_pressed("ui_up"):
-		move_camera(1)
-	elif Input.is_action_just_pressed("ui_down"):
-		move_camera(-1)
-	elif Input.is_action_just_pressed("ui_left"):
-		rotate_camera(90)
-	elif Input.is_action_just_pressed("ui_right"):
-		rotate_camera(-90)
+	# Process held-input rotation (left/right)
+	var rotate_direction = MovementSystem3D.process_rotation_input(delta, is_rotating)
+	if rotate_direction != 0:
+		# Convert to degrees: -1 (right/CW) = -90, 1 (left/CCW) = +90
+		rotate_camera(rotate_direction * 90)
 
 func move_camera(direction):
 	is_moving = true

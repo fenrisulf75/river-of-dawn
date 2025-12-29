@@ -20,6 +20,13 @@ PlayerData="*res://scripts/PlayerData.gd"
 Hud="*res://scenes/ui/HUD.tscn"
 MenuSystem="*res://scenes/ui/MenuSystem.tscn"
 MovementSystem2D="*res://scripts/MovementSystem2D.gd"
+MovementSystem3D="*res://scripts/MovementSystem3D.gd"
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
+window/size/resizable=false
 
 [gui]
 
