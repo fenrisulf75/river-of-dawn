@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://scenes/ui/TitleScreen.gd" type="Script" id=1]
 [ext_resource path="res://assets/textures/ui/title_screen.jpg" type="Texture" id=2]
 [ext_resource path="res://assets/fonts/cinzel_button.tres" type="DynamicFont" id=3]
+[ext_resource path="res://assets/audio/music/piano_main_menu.ogg" type="AudioStream" id=4]
 
 [node name="TitleScreen" type="Control"]
 anchor_right = 1.0
@@ -94,3 +95,14 @@ custom_colors/font_color_pressed = Color( 0.7, 0.6, 0.5, 1 )
 custom_fonts/font = ExtResource( 3 )
 text = "Quit"
 flat = true
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 4 )
+autoplay = true
+
+[node name="LoopTimer" type="Timer" parent="."]
+wait_time = 10.0
+one_shot = true
+
+[connection signal="finished" from="MusicPlayer" to="." method="_on_MusicPlayer_finished"]
+[connection signal="timeout" from="LoopTimer" to="." method="_on_LoopTimer_timeout"]

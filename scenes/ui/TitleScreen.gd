@@ -13,6 +13,8 @@ onready var new_game_button = $MenuContainer/VBoxContainer/NewGameButton
 onready var continue_button = $MenuContainer/VBoxContainer/ContinueButton
 onready var settings_button = $MenuContainer/VBoxContainer/SettingsButton
 onready var quit_button = $MenuContainer/VBoxContainer/QuitButton
+onready var music_player = $MusicPlayer
+onready var loop_timer = $LoopTimer
 
 var selected_button_index = 0
 var menu_buttons = []
@@ -126,3 +128,12 @@ func _on_settings_pressed():
 
 func _on_quit_pressed():
 	get_tree().quit()
+
+# Music loop system
+func _on_MusicPlayer_finished():
+	# Start 10-second pause timer before looping
+	loop_timer.start()
+
+func _on_LoopTimer_timeout():
+	# Restart music after 10-second pause
+	music_player.play()
