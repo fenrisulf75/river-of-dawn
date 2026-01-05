@@ -98,14 +98,39 @@ func check_save_file():
 
 # Button callbacks
 func _on_new_game_pressed():
-	# Show HUD when game starts
-	if has_node("/root/HUD"):
-		get_node("/root/HUD").show()
+	# Fade out title screen music and visual
+	fade_to_intro()
+
+func fade_to_intro():
+	# Disable menu interaction during fade
+	menu_container.hide()
+	splash_label.hide()
+	
+	# Create fade overlay if it doesn't exist
+	var fade = ColorRect.new()
+	fade.name = "FadeOverlay"
+	fade.color = Color(0, 0, 0, 0)
+	fade.anchor_right = 1.0
+	fade.anchor_bottom = 1.0
+	add_child(fade)
+	
+	# Fade out music and fade to black
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(music_player, "volume_db", -80, 2.0)
+	tween.tween_property(fade, "color:a", 1.0, 2.0)
+	
+	# Wait for fade to complete
+	yield(tween, "finished")
+	
+	# Stop music completely
+	music_player.stop()
 	
 	# Reset PlayerData for new game
 	PlayerData.reset()
 	
-	get_tree().change_scene("res://scenes/overworld/StarterZone.tscn")
+	# Load intro scroll sequence (which will then load StarterZone)
+	get_tree().change_scene("res://scenes/ui/IntroScroll.tscn")
 
 func _on_continue_pressed():
 	# Show HUD when game starts

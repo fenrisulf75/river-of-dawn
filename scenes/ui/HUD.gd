@@ -17,7 +17,7 @@ func check_scene():
 	if current_scene:
 		var scene_name = current_scene.name
 		# Hide HUD on title screen
-		if scene_name == "TitleScreen":
+		if scene_name == "TitleScreen" or scene_name == "IntroScroll":
 			visible = false
 		else:
 			visible = true
