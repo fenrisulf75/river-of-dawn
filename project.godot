@@ -21,16 +21,26 @@ Hud="*res://scenes/ui/HUD.tscn"
 MenuSystem="*res://scenes/ui/MenuSystem.tscn"
 MovementSystem2D="*res://scripts/MovementSystem2D.gd"
 MovementSystem3D="*res://scripts/MovementSystem3D.gd"
+InteractionPopup="*res://scenes/ui/InteractionPopup.tscn"
 
 [display]
 
 window/size/width=1920
 window/size/height=1080
 window/size/resizable=false
+window/size/fullscreen=true
 
 [gui]
 
 common/drop_mouse_on_gui_input_disabled=true
+
+[input]
+
+ui_page_up={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":73,"unicode":0,"echo":false,"script":null)
+ ]
+}
 
 [physics]
 

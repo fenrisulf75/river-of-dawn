@@ -138,6 +138,9 @@ func _ready():
 	# Setup combat
 	combat_ui.connect("combat_finished", self, "on_combat_finished")
 	
+	# Setup interaction popup (autoload singleton)
+	InteractionPopup.connect("interaction_complete", self, "_on_interaction_choice")
+	
 	# Initial vision reveal
 	update_fog_of_war()
 	
@@ -858,3 +861,55 @@ func is_position_valid(pos):
 	var x = int(pos.x)
 	var y = int(pos.y)
 	return x >= 0 and x < MAP_WIDTH and y >= 0 and y < MAP_HEIGHT
+
+# === INTERACTION POPUP TEST ===
+# Press 'I' key to test the interaction popup
+func _input(event):
+	# Test interaction popup with 'I' key
+	if event.is_action_pressed("ui_page_up"):  # 'I' key mapped to ui_page_up, or add custom action
+		test_interaction_popup()
+
+func test_interaction_popup():
+	var test_data = {
+		"character_name": "Ancient Shrine of Ba'al",
+		"portrait_name": "Corrupted Altar",
+		"dialogue": "Before you stands a weathered stone altar, its surface marked with spiraling glyphs that seem to writhe in the harsh sunlight. The symbols are worn by centuries of wind and salt, yet they still radiate an unsettling warmth.\n\nDried salt crystals cling to the deeper carvings, forming patterns that hurt to look at directly. A faint smell of sulfur and brine hangs in the air.\n\nThe altar seems to be waiting for something... or someone.",
+		"buttons": [
+			{"label": "Touch the altar", "id": "touch_altar"},
+			{"label": "Examine symbols", "id": "examine"},
+			{"label": "Leave offering", "id": "offer"}
+		]
+	}
+	
+	InteractionPopup.show_interaction(test_data)
+
+func _on_interaction_choice(choice_id):
+	if choice_id == null:
+		print("Interaction closed without choice")
+		return
+	
+	print("Player chose: ", choice_id)
+	
+	# Handle different choices
+	match choice_id:
+		"touch_altar":
+			show_message("As your fingers brush the stone, a searing heat courses through your arm.\nVisions flash: twisted figures, burning cities, a dark sea rising...\n\nYou pull back, gasping.\n\nPress SPACE to continue")
+		
+		"examine":
+			var examine_data = {
+				"character_name": "Ba'al Glyphs",
+				"dialogue": "The glyphs depict a cycle of destruction and rebirth. A storm god raising cities from nothing, then casting them down in fury.\n\nAt the center, repeatedly carved: a bull's head wreathed in lightning.\n\nBeneath it, in Proto-Sinaitic script, you recognize the word: \"Remember.\"",
+				"buttons": [
+					{"label": "Touch the altar", "id": "touch_altar"},
+					{"label": "Step back", "id": "close"}
+				]
+			}
+			InteractionPopup.show_interaction(examine_data)
+		
+		"offer":
+			show_message("You have nothing suitable to offer the corrupted god.\n\nPerhaps it's for the best.\n\nPress SPACE to continue")
+		
+		"close":
+			# Just close, do nothing
+			pass
+

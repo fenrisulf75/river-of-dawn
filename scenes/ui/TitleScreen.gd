@@ -41,6 +41,9 @@ func _ready():
 	settings_button.connect("pressed", self, "_on_settings_pressed")
 	quit_button.connect("pressed", self, "_on_quit_pressed")
 	
+	# Boost music volume for better audibility
+	music_player.volume_db = 6.0
+	
 	# Start in splash state
 	show_splash()
 	

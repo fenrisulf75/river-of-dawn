@@ -47,6 +47,9 @@ func _ready():
 	texture_cave_wall = load("res://assets/textures/walls/cave_stone_wall_512.png")
 	texture_cave_floor = load("res://assets/textures/ground/terrain/ground_cliff_24.png")
 	
+	# Setup interaction popup (autoload singleton)
+	InteractionPopup.connect("interaction_complete", self, "_on_interaction_choice")
+	
 	generate_passage()
 
 func generate_passage():
@@ -357,3 +360,12 @@ func check_current_tile(position):
 				var wall_pos = find_tile_position(wall_tile)
 				
 				trigger_collapse(tile, wall_pos)
+
+# === INTERACTION POPUP HANDLER ===
+func _on_interaction_choice(choice_id):
+	if choice_id == null:
+		return
+	
+	# Handle interaction choices for 3D dungeon
+	print("PassageToYeriho: Player chose ", choice_id)
+	# Add specific handlers as needed

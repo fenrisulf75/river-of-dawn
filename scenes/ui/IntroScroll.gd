@@ -92,6 +92,10 @@ func start_sequence():
 		hud.visible = false
 		hud.modulate.a = 0.0
 	
+	# Start audio immediately
+	audio_player.play()
+	print("IntroScroll: Audio started at current_time = 0.0")
+	
 	# Fade in smoke background and fade out black overlay
 	var tween = create_tween()
 	tween.set_parallel(true)
@@ -125,13 +129,9 @@ func _process(delta):
 	current_time += delta
 	
 	# === PHASE 1: Fade in smoke/atmosphere (0-2s) ===
-	# Handled by start_sequence()
+	# Handled by start_sequence() - audio also starts here now
 	
-	# === PHASE 2: Start audio immediately after fade in ===
-	if current_time >= FADE_IN_DURATION and not audio_player.playing:
-		audio_player.play()
-	
-	# === PHASE 3: Fade in text when vocal begins (at 16.6s) ===
+	# === PHASE 2: Fade in text when vocal begins (at 16.6s) ===
 	var fade_in_duration = 2.0
 	var time_since_vocal_start = current_time - VOCAL_START_TIME
 	
@@ -142,14 +142,17 @@ func _process(delta):
 		# Ensure it's at full opacity after fade in completes
 		scroll_text.modulate.a = 1.0
 	
-	# === PHASE 4: Scroll text continuously until vocal ends ===
-	if current_time >= VOCAL_START_TIME and current_time <= VOCAL_END_TIME:
-		# Always scroll
+	# === PHASE 3: Scroll text continuously until vocal ends ===
+	# Extended slightly past vocal end to ensure smooth fade completion
+	var fade_start_time = 8.0  # Start fading 8 seconds before vocal ends
+	var fade_end_time = VOCAL_END_TIME  # Complete fade when vocal ends
+	
+	if current_time >= VOCAL_START_TIME and current_time <= fade_end_time:
+		# Always scroll (continues even during fade)
 		scroll_text.rect_position.y -= scroll_speed * delta
 		
 		# Calculate fade based on how close we are to the end
 		var time_remaining = VOCAL_END_TIME - current_time
-		var fade_start_time = 8.0  # Start fading 8 seconds before vocal ends
 		
 		if time_remaining < fade_start_time:
 			# Fade out gradually while STILL scrolling
@@ -160,20 +163,25 @@ func _process(delta):
 		if scroll_text.rect_position.y < scroll_end_y:
 			scroll_text.rect_position.y = scroll_end_y
 	
-	# === PHASE 5: After vocal ends, lock text invisible and stop processing ===
-	if current_time > VOCAL_END_TIME and not sequence_complete:
+	# === PHASE 4: After vocal ends, lock text invisible but DON'T set sequence_complete ===
+	# Audio continues for ~7 more seconds, and we need _on_AudioPlayer_finished to fire
+	if current_time > VOCAL_END_TIME:
 		scroll_text.modulate.a = 0.0
 		scroll_text.visible = false
-		sequence_complete = true  # Prevent any further updates
 
 func _on_AudioPlayer_finished():
 	print("=== AUDIO FINISHED CALLED ===")
 	print("Is in tree: ", is_inside_tree())
-	print("Sequence complete: ", sequence_complete)
+	print("Sequence complete before: ", sequence_complete)
 	
 	# Check if still in tree (prevent resume error)
-	if not is_inside_tree() or sequence_complete:
-		print("Returning early - already complete or not in tree")
+	if not is_inside_tree():
+		print("Returning early - not in tree")
+		return
+	
+	# Only proceed if not already complete (prevents double-triggering)
+	if sequence_complete:
+		print("Already complete - ignoring duplicate signal")
 		return
 	
 	sequence_complete = true  # Mark as complete to prevent repeats

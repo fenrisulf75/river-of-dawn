@@ -73,6 +73,9 @@ func _ready():
 	light.light_energy = 0.9
 	add_child(light)
 	
+	# Setup interaction popup (autoload singleton)
+	InteractionPopup.connect("interaction_complete", self, "_on_interaction_choice")
+	
 	generate_city()
 	position_camera_at_spawn()
 	PlayerData.in_dungeon = false
@@ -331,3 +334,12 @@ func show_message(text):
 	message_label.text = text
 	message_label.visible = true
 	waiting_for_input = true
+
+# === INTERACTION POPUP HANDLER ===
+func _on_interaction_choice(choice_id):
+	if choice_id == null:
+		return
+	
+	# Handle interaction choices for Yeriho city
+	print("Yeriho: Player chose ", choice_id)
+	# Add specific handlers as needed
