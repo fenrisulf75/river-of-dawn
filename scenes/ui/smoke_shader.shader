@@ -32,7 +32,7 @@ float fbm(vec2 p) {
     float amplitude = 0.5;
     float frequency = 1.0;
     
-    for(int i = 0; i < 7; i++) {  // Increased from 5 to 7 layers
+    for(int i = 0; i < 3; i++) {  // Reduced from 7 to 3 layers for performance
         value += amplitude * noise(p * frequency);
         frequency *= 2.0;
         amplitude *= 0.5;
@@ -45,16 +45,15 @@ void fragment() {
     vec2 uv = UV;
     float time = TIME * time_scale;
     
-    // Create drifting smoke layers
+    // Create drifting smoke layers - REDUCED TO 2 LAYERS
     vec2 drift = vec2(time * drift_speed, time * drift_speed * 0.3);
     
-    // Multiple smoke layers at different scales
+    // Only 2 smoke layers instead of 3
     float smoke1 = fbm(uv * 3.0 + drift);
     float smoke2 = fbm(uv * 5.0 - drift * 0.7);
-    float smoke3 = fbm(uv * 7.0 + drift * 0.5);
     
     // Combine layers
-    float smoke = (smoke1 + smoke2 * 0.6 + smoke3 * 0.4) / 2.0;
+    float smoke = (smoke1 + smoke2 * 0.6) / 1.6;
     
     // Apply density control
     smoke = smoothstep(1.0 - smoke_density, 1.0, smoke);

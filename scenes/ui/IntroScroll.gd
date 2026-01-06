@@ -27,6 +27,7 @@ var scroll_start_y = 0.0
 var scroll_end_y = 0.0
 var scroll_speed = 0.0
 var can_skip = true
+var sequence_complete = false  # Track if sequence has finished
 
 func _ready():
 	# Hide HUD during intro sequence - try multiple methods
@@ -141,8 +142,9 @@ func _process(delta):
 		# Ensure it's at full opacity after fade in completes
 		scroll_text.modulate.a = 1.0
 	
-	# === PHASE 4: Scroll text during vocal (16.6s - 92.07s) ===
+	# === PHASE 4: Scroll text continuously until vocal ends ===
 	if current_time >= VOCAL_START_TIME and current_time <= VOCAL_END_TIME:
+		# Always scroll
 		scroll_text.rect_position.y -= scroll_speed * delta
 		
 		# Calculate fade based on how close we are to the end
@@ -150,24 +152,43 @@ func _process(delta):
 		var fade_start_time = 8.0  # Start fading 8 seconds before vocal ends
 		
 		if time_remaining < fade_start_time:
-			# Fade out gradually as we approach the end
+			# Fade out gradually while STILL scrolling
 			var fade_progress = time_remaining / fade_start_time
 			scroll_text.modulate.a = fade_progress
 		
 		# Clamp to end position
 		if scroll_text.rect_position.y < scroll_end_y:
 			scroll_text.rect_position.y = scroll_end_y
+	
+	# === PHASE 5: After vocal ends, lock text invisible and stop processing ===
+	if current_time > VOCAL_END_TIME and not sequence_complete:
+		scroll_text.modulate.a = 0.0
+		scroll_text.visible = false
+		sequence_complete = true  # Prevent any further updates
 
 func _on_AudioPlayer_finished():
+	print("=== AUDIO FINISHED CALLED ===")
+	print("Is in tree: ", is_inside_tree())
+	print("Sequence complete: ", sequence_complete)
+	
 	# Check if still in tree (prevent resume error)
-	if not is_inside_tree():
+	if not is_inside_tree() or sequence_complete:
+		print("Returning early - already complete or not in tree")
 		return
 	
+	sequence_complete = true  # Mark as complete to prevent repeats
+	audio_player.stop()  # Ensure audio is stopped
+	
+	print("Starting fade to game...")
 	# Audio completed, fade to game immediately
 	fade_to_game()
 
 func fade_to_game():
+	if sequence_complete == false:
+		sequence_complete = true
+	
 	can_skip = false
+	sequence_started = false  # Stop processing
 	
 	# Quick fade to black
 	var tween = create_tween()
