@@ -1,20 +1,21 @@
-extends Control
+extends CanvasLayer
 
 # InteractionPopup - Handles NPC dialogue, object examination, shops, etc.
 # Features animated portrait (6-frame cycle) and configurable button options
 
 signal interaction_complete(choice)
 
-onready var portrait_sprite = $PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame/PortraitSprite
-onready var portrait_label = $PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitLabel
-onready var name_label = $PopupPanel/ContentMargin/MainContainer/DialogueSection/NameLabel
-onready var dialogue_text = $PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll/DialogueText
-onready var button_container = $PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer
-onready var button1 = $PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button1
-onready var button2 = $PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button2
-onready var button3 = $PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button3
-onready var close_button = $PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/CloseButton
-onready var animation_timer = $PopupPanel/ContentMargin/MainContainer/PortraitSection/AnimationTimer
+onready var control = $Control
+onready var portrait_sprite = $Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame/PortraitSprite
+onready var portrait_label = $Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitLabel
+onready var name_label = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/NameLabel
+onready var dialogue_text = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll/DialogueText
+onready var button_container = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer
+onready var button1 = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button1
+onready var button2 = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button2
+onready var button3 = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button3
+onready var close_button = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/CloseButton
+onready var animation_timer = $Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/AnimationTimer
 
 # Portrait animation
 var portrait_frames = []  # Array of 6 Texture resources

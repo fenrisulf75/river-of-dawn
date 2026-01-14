@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://scenes/ui/InteractionPopup.gd" type="Script" id=1]
+[ext_resource path="res://assets/textures/ui/interaction_popup_border.png" type="Texture" id=2]
 
 [sub_resource type="DynamicFontData" id=1]
 font_path = "res://assets/fonts/EB_Garamond/static/EBGaramond-SemiBold.ttf"
@@ -9,18 +10,20 @@ font_path = "res://assets/fonts/EB_Garamond/static/EBGaramond-SemiBold.ttf"
 size = 24
 font_data = SubResource( 1 )
 
-[node name="InteractionPopup" type="Control"]
+[node name="InteractionPopup" type="CanvasLayer"]
 pause_mode = 2
-anchor_right = 1.0
-anchor_bottom = 1.0
 script = ExtResource( 1 )
 
-[node name="DimOverlay" type="ColorRect" parent="."]
+[node name="Control" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="DimOverlay" type="ColorRect" parent="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color( 0, 0, 0, 0.6 )
 
-[node name="PopupPanel" type="Panel" parent="."]
+[node name="PopupPanel" type="Panel" parent="Control"]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -30,16 +33,16 @@ margin_top = -350.0
 margin_right = 600.0
 margin_bottom = 350.0
 
-[node name="BorderTexture" type="NinePatchRect" parent="PopupPanel"]
+[node name="BorderTexture" type="NinePatchRect" parent="Control/PopupPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-texture = null
-patch_margin_left = 32
-patch_margin_top = 32
-patch_margin_right = 32
-patch_margin_bottom = 32
+texture = ExtResource( 2 )
+patch_margin_left = 128
+patch_margin_top = 128
+patch_margin_right = 128
+patch_margin_bottom = 128
 
-[node name="ContentMargin" type="MarginContainer" parent="PopupPanel"]
+[node name="ContentMargin" type="MarginContainer" parent="Control/PopupPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 40.0
@@ -47,22 +50,23 @@ margin_top = 40.0
 margin_right = -40.0
 margin_bottom = -40.0
 
-[node name="MainContainer" type="HBoxContainer" parent="PopupPanel/ContentMargin"]
+[node name="MainContainer" type="HBoxContainer" parent="Control/PopupPanel/ContentMargin"]
 margin_right = 1120.0
 margin_bottom = 620.0
 custom_constants/separation = 30
 
-[node name="PortraitSection" type="VBoxContainer" parent="PopupPanel/ContentMargin/MainContainer"]
+[node name="PortraitSection" type="VBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer"]
 margin_right = 256.0
 margin_bottom = 620.0
 rect_min_size = Vector2( 256, 0 )
 
-[node name="PortraitFrame" type="Panel" parent="PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_right = 256.0
-margin_bottom = 256.0
-rect_min_size = Vector2( 256, 256 )
+[node name="PortraitFrame" type="Panel" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
+margin_left = 100.0
+margin_top = 122.0
+margin_right = 287.0
+margin_bottom = 324.0
 
-[node name="PortraitSprite" type="TextureRect" parent="PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame"]
+[node name="PortraitSprite" type="TextureRect" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 8.0
@@ -72,47 +76,47 @@ margin_bottom = -8.0
 expand = true
 stretch_mode = 6
 
-[node name="AnimationTimer" type="Timer" parent="PopupPanel/ContentMargin/MainContainer/PortraitSection"]
+[node name="AnimationTimer" type="Timer" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
 wait_time = 0.2
 autostart = true
 
-[node name="PortraitLabel" type="Label" parent="PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_top = 260.0
+[node name="PortraitLabel" type="Label" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
+margin_top = 4.0
 margin_right = 256.0
-margin_bottom = 286.0
+margin_bottom = 37.0
 custom_fonts/font = SubResource( 2 )
 text = "[Portrait Name]"
 align = 1
 
-[node name="DialogueSection" type="VBoxContainer" parent="PopupPanel/ContentMargin/MainContainer"]
+[node name="DialogueSection" type="VBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer"]
 margin_left = 286.0
 margin_right = 1120.0
 margin_bottom = 620.0
 size_flags_horizontal = 3
 custom_constants/separation = 20
 
-[node name="NameLabel" type="Label" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection"]
+[node name="NameLabel" type="Label" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
 margin_right = 834.0
-margin_bottom = 32.0
+margin_bottom = 33.0
 custom_fonts/font = SubResource( 2 )
 text = "Character Name"
 
-[node name="SeparatorLine" type="ColorRect" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection"]
-margin_top = 52.0
+[node name="SeparatorLine" type="ColorRect" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
+margin_top = 53.0
 margin_right = 834.0
-margin_bottom = 54.0
+margin_bottom = 55.0
 rect_min_size = Vector2( 0, 2 )
 color = Color( 0.6, 0.5, 0.4, 1 )
 
-[node name="DialogueScroll" type="ScrollContainer" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection"]
-margin_top = 74.0
+[node name="DialogueScroll" type="ScrollContainer" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
+margin_top = 75.0
 margin_right = 834.0
 margin_bottom = 524.0
 size_flags_vertical = 3
 
-[node name="DialogueText" type="RichTextLabel" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll"]
+[node name="DialogueText" type="RichTextLabel" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll"]
 margin_right = 834.0
-margin_bottom = 450.0
+margin_bottom = 136.0
 rect_min_size = Vector2( 834, 0 )
 custom_fonts/normal_font = SubResource( 2 )
 bbcode_enabled = true
@@ -124,47 +128,47 @@ text = "Dialogue text will appear here. This is where NPCs speak to you, quest i
 This text area can scroll if the content is longer than the visible space."
 fit_content_height = true
 
-[node name="ButtonContainer" type="HBoxContainer" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection"]
+[node name="ButtonContainer" type="HBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
 margin_top = 544.0
 margin_right = 834.0
 margin_bottom = 620.0
 custom_constants/separation = 15
 alignment = 1
 
-[node name="Button1" type="Button" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 188.0
-margin_right = 313.0
+[node name="Button1" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
+margin_left = 192.0
+margin_right = 317.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Accept"
 
-[node name="Button2" type="Button" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 328.0
-margin_right = 453.0
+[node name="Button2" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
+margin_left = 332.0
+margin_right = 457.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Decline"
 
-[node name="Button3" type="Button" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 468.0
-margin_right = 593.0
+[node name="Button3" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
+margin_left = 472.0
+margin_right = 597.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Trade"
 
-[node name="CloseButton" type="Button" parent="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 608.0
-margin_right = 645.0
+[node name="CloseButton" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
+margin_left = 612.0
+margin_right = 642.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 0, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "X"
 
-[connection signal="timeout" from="PopupPanel/ContentMargin/MainContainer/PortraitSection/AnimationTimer" to="." method="_on_AnimationTimer_timeout"]
-[connection signal="pressed" from="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button1" to="." method="_on_Button1_pressed"]
-[connection signal="pressed" from="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button2" to="." method="_on_Button2_pressed"]
-[connection signal="pressed" from="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button3" to="." method="_on_Button3_pressed"]
-[connection signal="pressed" from="PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/CloseButton" to="." method="_on_CloseButton_pressed"]
+[connection signal="timeout" from="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/AnimationTimer" to="." method="_on_AnimationTimer_timeout"]
+[connection signal="pressed" from="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button1" to="." method="_on_Button1_pressed"]
+[connection signal="pressed" from="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button2" to="." method="_on_Button2_pressed"]
+[connection signal="pressed" from="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button3" to="." method="_on_Button3_pressed"]
+[connection signal="pressed" from="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/CloseButton" to="." method="_on_CloseButton_pressed"]

@@ -23,6 +23,12 @@ func _ready():
 	# Wait one frame for autoloads to be ready
 	yield(get_tree(), "idle_frame")
 	
+	# Stop music from autoplay
+	music_player.stop()
+	
+	# Boost music volume for better audibility (+10%)
+	music_player.volume_db = 7.8
+	
 	# Hide HUD if it exists
 	if has_node("/root/HUD"):
 		get_node("/root/HUD").hide()
@@ -41,15 +47,12 @@ func _ready():
 	settings_button.connect("pressed", self, "_on_settings_pressed")
 	quit_button.connect("pressed", self, "_on_quit_pressed")
 	
-	# Boost music volume for better audibility
-	music_player.volume_db = 6.0
-	
 	# Start in splash state
 	show_splash()
 	
 	# Check if save file exists to enable/disable Continue button
 	check_save_file()
-
+	
 func _process(_delta):
 	if current_state == State.SPLASH:
 		if Input.is_action_just_pressed("ui_accept"):
@@ -62,7 +65,10 @@ func show_splash():
 	current_state = State.SPLASH
 	splash_label.visible = true
 	menu_container.visible = false
-
+	
+	# Wait for scene to fully appear, THEN start music
+	yield(get_tree().create_timer(1.5), "timeout")
+	music_player.play()
 func show_menu():
 	current_state = State.MENU
 	splash_label.visible = false

@@ -98,7 +98,6 @@ flat = true
 
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 4 )
-autoplay = true
 
 [node name="LoopTimer" type="Timer" parent="."]
 wait_time = 10.0

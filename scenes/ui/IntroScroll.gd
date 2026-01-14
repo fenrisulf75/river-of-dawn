@@ -94,6 +94,7 @@ func start_sequence():
 	
 	# Start audio immediately
 	audio_player.play()
+	audio_player.volume_db = -1.1  # Reduce by ~12%
 	print("IntroScroll: Audio started at current_time = 0.0")
 	
 	# Fade in smoke background and fade out black overlay
