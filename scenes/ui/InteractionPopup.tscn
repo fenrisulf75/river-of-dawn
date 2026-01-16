@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://scenes/ui/InteractionPopup.gd" type="Script" id=1]
-[ext_resource path="res://assets/textures/ui/interaction_popup_border.png" type="Texture" id=2]
+[ext_resource path="res://assets/textures/ui/interaction_popup_border_original.png" type="Texture" id=2]
 
 [sub_resource type="DynamicFontData" id=1]
 font_path = "res://assets/fonts/EB_Garamond/static/EBGaramond-SemiBold.ttf"
@@ -17,10 +17,12 @@ script = ExtResource( 1 )
 [node name="Control" type="Control" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 
 [node name="DimOverlay" type="ColorRect" parent="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 color = Color( 0, 0, 0, 0.6 )
 
 [node name="PopupPanel" type="Panel" parent="Control"]
@@ -28,19 +30,19 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -600.0
+margin_left = -525.0
 margin_top = -350.0
-margin_right = 600.0
+margin_right = 525.0
 margin_bottom = 350.0
 
 [node name="BorderTexture" type="NinePatchRect" parent="Control/PopupPanel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource( 2 )
-patch_margin_left = 128
-patch_margin_top = 128
-patch_margin_right = 128
-patch_margin_bottom = 128
+patch_margin_left = 200
+patch_margin_top = 200
+patch_margin_right = 200
+patch_margin_bottom = 200
 
 [node name="ContentMargin" type="MarginContainer" parent="Control/PopupPanel"]
 anchor_right = 1.0
@@ -61,10 +63,10 @@ margin_bottom = 620.0
 rect_min_size = Vector2( 256, 0 )
 
 [node name="PortraitFrame" type="Panel" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_left = 100.0
-margin_top = 122.0
-margin_right = 287.0
-margin_bottom = 324.0
+margin_right = 256.0
+margin_bottom = 256.0
+rect_min_size = Vector2( 256, 256 )
+size_flags_vertical = 4
 
 [node name="PortraitSprite" type="TextureRect" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame"]
 anchor_right = 1.0
@@ -81,9 +83,9 @@ wait_time = 0.2
 autostart = true
 
 [node name="PortraitLabel" type="Label" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_top = 4.0
+margin_top = 260.0
 margin_right = 256.0
-margin_bottom = 37.0
+margin_bottom = 293.0
 custom_fonts/font = SubResource( 2 )
 text = "[Portrait Name]"
 align = 1

@@ -863,10 +863,10 @@ func is_position_valid(pos):
 	return x >= 0 and x < MAP_WIDTH and y >= 0 and y < MAP_HEIGHT
 
 # === INTERACTION POPUP TEST ===
-# Press 'I' key to test the interaction popup
+# Press 'I' key to test the interaction popup (mapped as ui_page_up in project settings)
 func _input(event):
 	# Test interaction popup with 'I' key
-	if event.is_action_pressed("ui_page_up"):  # 'I' key mapped to ui_page_up, or add custom action
+	if event.is_action_pressed("ui_page_up"):  # 'I' key already mapped in Input Map
 		test_interaction_popup()
 
 func test_interaction_popup():
