@@ -9,6 +9,7 @@ onready var control = $Control
 onready var portrait_sprite = $Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame/PortraitSprite
 onready var portrait_label = $Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitLabel
 onready var name_label = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/NameLabel
+onready var dialogue_scroll = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll
 onready var dialogue_text = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/DialogueScroll/DialogueText
 onready var button_container = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer
 onready var button1 = $Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer/Button1
@@ -72,6 +73,9 @@ func show_interaction(data: Dictionary):
 	
 	# Set dialogue text
 	dialogue_text.bbcode_text = data.get("dialogue", "...")
+	
+	# Reset scroll position to top
+	dialogue_scroll.scroll_vertical = 0
 	
 	# Configure buttons
 	setup_buttons(data.get("buttons", []))

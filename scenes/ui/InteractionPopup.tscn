@@ -53,28 +53,32 @@ margin_right = -40.0
 margin_bottom = -40.0
 
 [node name="MainContainer" type="HBoxContainer" parent="Control/PopupPanel/ContentMargin"]
-margin_right = 1120.0
+margin_right = 970.0
 margin_bottom = 620.0
 custom_constants/separation = 30
 
-[node name="PortraitSection" type="VBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer"]
-margin_right = 256.0
+[node name="PortraitSection" type="Control" parent="Control/PopupPanel/ContentMargin/MainContainer"]
+margin_right = 200.0
 margin_bottom = 620.0
-rect_min_size = Vector2( 256, 0 )
+rect_min_size = Vector2( 200, 200 )
 
 [node name="PortraitFrame" type="Panel" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_right = 256.0
-margin_bottom = 256.0
-rect_min_size = Vector2( 256, 256 )
+margin_left = 111.0
+margin_top = 128.0
+margin_right = 328.0
+margin_bottom = 344.0
+rect_min_size = Vector2( 217, 216 )
+rect_clip_content = true
+size_flags_horizontal = 0
 size_flags_vertical = 4
 
 [node name="PortraitSprite" type="TextureRect" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection/PortraitFrame"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 8.0
-margin_top = 8.0
-margin_right = -8.0
-margin_bottom = -8.0
+margin_left = 114.0
+margin_top = -63.0
+margin_right = 95.0
+margin_bottom = -82.0
 expand = true
 stretch_mode = 6
 
@@ -83,36 +87,36 @@ wait_time = 0.2
 autostart = true
 
 [node name="PortraitLabel" type="Label" parent="Control/PopupPanel/ContentMargin/MainContainer/PortraitSection"]
-margin_top = 260.0
-margin_right = 256.0
-margin_bottom = 293.0
+margin_top = 403.0
+margin_right = 217.0
+margin_bottom = 436.0
 custom_fonts/font = SubResource( 2 )
 text = "[Portrait Name]"
 align = 1
 
 [node name="DialogueSection" type="VBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer"]
-margin_left = 286.0
-margin_right = 1120.0
+margin_left = 230.0
+margin_right = 970.0
 margin_bottom = 620.0
 size_flags_horizontal = 3
 custom_constants/separation = 20
 
 [node name="NameLabel" type="Label" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
-margin_right = 834.0
+margin_right = 740.0
 margin_bottom = 33.0
 custom_fonts/font = SubResource( 2 )
 text = "Character Name"
 
 [node name="SeparatorLine" type="ColorRect" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
 margin_top = 53.0
-margin_right = 834.0
+margin_right = 740.0
 margin_bottom = 55.0
 rect_min_size = Vector2( 0, 2 )
 color = Color( 0.6, 0.5, 0.4, 1 )
 
 [node name="DialogueScroll" type="ScrollContainer" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
 margin_top = 75.0
-margin_right = 834.0
+margin_right = 740.0
 margin_bottom = 524.0
 size_flags_vertical = 3
 
@@ -132,38 +136,38 @@ fit_content_height = true
 
 [node name="ButtonContainer" type="HBoxContainer" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection"]
 margin_top = 544.0
-margin_right = 834.0
+margin_right = 740.0
 margin_bottom = 620.0
 custom_constants/separation = 15
 alignment = 1
 
 [node name="Button1" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 192.0
-margin_right = 317.0
+margin_left = 145.0
+margin_right = 270.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Accept"
 
 [node name="Button2" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 332.0
-margin_right = 457.0
+margin_left = 285.0
+margin_right = 410.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Decline"
 
 [node name="Button3" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 472.0
-margin_right = 597.0
+margin_left = 425.0
+margin_right = 550.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 125, 76 )
 custom_fonts/font = SubResource( 2 )
 text = "Trade"
 
 [node name="CloseButton" type="Button" parent="Control/PopupPanel/ContentMargin/MainContainer/DialogueSection/ButtonContainer"]
-margin_left = 612.0
-margin_right = 642.0
+margin_left = 565.0
+margin_right = 595.0
 margin_bottom = 76.0
 rect_min_size = Vector2( 0, 76 )
 custom_fonts/font = SubResource( 2 )
